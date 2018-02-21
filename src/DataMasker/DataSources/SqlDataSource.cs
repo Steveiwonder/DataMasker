@@ -77,9 +77,9 @@ namespace DataMasker.DataSources
         /// </param>
         public void UpdateRows(
             IEnumerable<IDictionary<string, object>> rows,
-            TableConfig config,
-            int? batchSize = null)
+            TableConfig config)
         {
+            int? batchSize = _sourceConfig.UpdateBatchSize;
             if (batchSize == null ||
                 batchSize <= 0)
             {

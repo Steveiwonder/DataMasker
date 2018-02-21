@@ -30,5 +30,13 @@ namespace DataMasker.Models
         ///   <c>true</c> if [dry run]; otherwise, <c>false</c>.
         /// </value>
         public bool DryRun { get; set; }
+
+        /// <summary>
+        /// Gets or sets the batch size to use when updating
+        /// </summary>
+        /// <value>
+        /// The size of the update batch.
+        /// </value>
+        public int? UpdateBatchSize { get; set; }
     }
 }

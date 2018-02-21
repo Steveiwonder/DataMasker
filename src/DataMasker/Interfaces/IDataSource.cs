@@ -31,13 +31,8 @@ namespace DataMasker.Interfaces
         /// </summary>
         /// <param name="rows">The rows.</param>
         /// <param name="config">The configuration.</param>
-        /// <param name="batchSize">
-        /// When set <see cref="rows"/> will be split into batches of this size and passed to the source
-        /// for updating
-        /// </param>
         void UpdateRows(
             IEnumerable<IDictionary<string, object>> rows,
-            TableConfig config,
-            int? batchSize = null);
+            TableConfig config);
     }
 }

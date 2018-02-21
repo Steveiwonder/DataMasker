@@ -88,8 +88,7 @@ namespace DataMasker.DataSources
         /// <inheritdoc/>
         public void UpdateRows(
             IEnumerable<IDictionary<string, object>> rows,
-            TableConfig config,
-            int? batchSize = null)
+            TableConfig config)
         {
             foreach (IDictionary<string, object> dictionary in rows)
             {
