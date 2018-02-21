@@ -74,3 +74,35 @@ Example Config
   ]
 }
 ```
+
+Example Usage
+```csharp
+//load our configuration
+Config config = Config.LoadConfig($"example-configs\\config-example1.json")
+
+//create a data masker
+IDataMasker dataMasker = new DataMasker(new DataGenerator(config.DataGeneration));
+
+//grab our dataSource from the config, note: you could just ignore the config.DataSource.Type
+//and initialize your own instance
+IDataSource dataSource = DataSourceProvider.Provide(config.DataSource.Type, config.DataSource);
+
+//Enumerable all our tables and being masking the data
+foreach (TableConfig tableConfig in config.Tables)
+{
+    //load the data, this needs optimizing for large tables
+    IEnumerable<IDictionary<string, object>> rows = dataSource.GetData(tableConfig);
+    foreach (IDictionary<string, object> row in rows)
+    {
+        //mask each row
+        dataMasker.Mask(row, tableConfig);
+
+        //update per row, or see below,
+        //dataSource.UpdateRow(row, tableConfig);
+    }
+
+    //update all rows, in batches of 100
+    dataSource.UpdateRows(rows, tableConfig, 100);
+}
+
+```
