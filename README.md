@@ -13,7 +13,7 @@ Data generation is provided by [https://github.com/bchavez/Bogus](https://github
 All configuration is done via a .json file, the schema can be found here: [json schema](https://github.com/Steveiwonder/DataMasker/blob/master/src/DataMasker.Config.schema.json)
 
 Example Config
-```json
+```javascript
 {
   "dataSource": {
     "type": "SqlServer",
