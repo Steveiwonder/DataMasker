@@ -195,6 +195,8 @@ namespace DataMasker
                     return _faker.Address.FullAddress();
                 case DataType.PhoneNumber:
                     return _faker.Phone.PhoneNumber(columnConfig.StringFormatPattern);
+                case DataType.Bogus:
+                    return _faker.Parse(columnConfig.StringFormatPattern);
             }
 
 

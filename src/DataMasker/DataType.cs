@@ -5,7 +5,16 @@
     /// </summary>
     public enum DataType
     {
+        /// <summary>
+        /// The none
+        /// </summary>
         None,
+
+        /// <summary>
+        /// The api data type, supports {{entity.property}} e.g. {{address.FullAddress}}
+        /// </summary>
+        Bogus,
+
         /// <summary>
         /// The first name
         /// </summary>

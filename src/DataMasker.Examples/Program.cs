@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DataMasker.DataSources;
 using DataMasker.Interfaces;
 using DataMasker.Models;
 using Newtonsoft.Json;
@@ -23,7 +22,8 @@ namespace DataMasker.Examples
             Example1();
         }
 
-        private static Config LoadConfig(int example)
+        private static Config LoadConfig(
+            int example)
         {
             return Config.Load($"example-configs\\config-example{example}.json");
         }
@@ -58,12 +58,12 @@ namespace DataMasker.Examples
             JSchema schema = generator.Generate(typeof(Config));
             generator.GenerationProviders.Add(new StringEnumGenerationProvider());
             schema.Title = "DataMasker.Config";
-            var writer = new StringWriter();
-            var jsonTextWriter = new JsonTextWriter(writer);
+            StringWriter writer = new StringWriter();
+            JsonTextWriter jsonTextWriter = new JsonTextWriter(writer);
             schema.WriteTo(jsonTextWriter);
             dynamic parsedJson = JsonConvert.DeserializeObject(writer.ToString());
-            var prettyString = JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
-            var fileWriter = new StreamWriter("DataMasker.Config.schema.json");
+            dynamic prettyString = JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
+            StreamWriter fileWriter = new StreamWriter("DataMasker.Config.schema.json");
             fileWriter.WriteLine(schema.Title);
             fileWriter.WriteLine(new string('-', schema.Title.Length));
             fileWriter.WriteLine(prettyString);

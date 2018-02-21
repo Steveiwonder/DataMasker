@@ -38,7 +38,8 @@
         },
         {
           "name": "Address",
-          "type": "FullAddress",
+          "type": "Bogus",
+          "stringFormatPattern": "{{address.fullAddress}}",
           "retainNullValues": false
         },
         {
