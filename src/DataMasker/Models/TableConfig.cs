@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace DataMasker.Models
 {
     /// <summary>
-    /// 
+    /// TableConfig
     /// </summary>
     public class TableConfig
     {
@@ -13,6 +14,7 @@ namespace DataMasker.Models
         /// <value>
         /// The name.
         /// </value>
+        [JsonRequired]
         public string Name { get; set; }
 
         /// <summary>
@@ -21,6 +23,7 @@ namespace DataMasker.Models
         /// <value>
         /// The primary key column.
         /// </value>
+        [JsonRequired]
         public string PrimaryKeyColumn { get; set; }
 
         /// <summary>
@@ -29,6 +32,7 @@ namespace DataMasker.Models
         /// <value>
         /// The columns.
         /// </value>
+        [JsonRequired]
         public IList<ColumnConfig> Columns { get; set; }
     }
 }

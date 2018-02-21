@@ -9,13 +9,13 @@ namespace DataMasker.Models
     /// </summary>
     public class ColumnConfig
     {
-
         /// <summary>
         /// The name of the column
         /// </summary>
         /// <value>
         /// The name.
         /// </value>
+        [JsonRequired]
         public string Name { get; set; }
 
 
@@ -25,6 +25,7 @@ namespace DataMasker.Models
         /// <value>
         /// The type.
         /// </value>
+        [JsonRequired]
         public DataType Type { get; set; }
 
         /// <summary>
@@ -36,6 +37,7 @@ namespace DataMasker.Models
         /// <value>
         /// The value mappings.
         /// </value>
+
         public IDictionary<object, object> ValueMappings { get; set; }
 
         /// <summary>
@@ -44,6 +46,8 @@ namespace DataMasker.Models
         /// <value>
         /// The use gender column.
         /// </value>
+        [DefaultValue(null)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public string UseGenderColumn { get; set; }
 
         /// <summary>
@@ -51,8 +55,10 @@ namespace DataMasker.Models
         /// You don't want to change the gender, but you need the gender data to be able to create data for other columns
         /// </summary>
         /// <value>
-        ///   <c>true</c> if ignore; otherwise, <c>false</c>.
+        /// <c>true</c> if ignore; otherwise, <c>false</c>.
         /// </value>
+        [DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool Ignore { get; set; }
 
         /// <summary>
@@ -61,16 +67,20 @@ namespace DataMasker.Models
         /// <value>
         /// The maximum.
         /// </value>
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate), DefaultValue(10)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        [DefaultValue(10)]
         public int Max { get; set; }
 
         /// <summary>
-        /// If the <see cref="Type"/> is <see cref="DataType.StringFormat"/> you can specify any a format to use when generating that data
+        /// If the <see cref="Type"/> is <see cref="DataType.StringFormat"/> you can specify any a format to use when generating
+        /// that data
         /// <remarks>See https://github.com/bchavez/Bogus#replace</remarks>
         /// </summary>
         /// <value>
         /// The string format pattern.
         /// </value>
+        [DefaultValue(null)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public string StringFormatPattern { get; set; }
 
         /// <summary>
@@ -79,6 +89,8 @@ namespace DataMasker.Models
         /// <value>
         /// The use value.
         /// </value>
+        [DefaultValue(null)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public string UseValue { get; set; }
 
 
@@ -87,25 +99,34 @@ namespace DataMasker.Models
         /// When false, if the data loaded from the source is null it will be replaced by new data
         /// </summary>
         /// <value>
-        ///   <c>true</c> if [retain null values]; otherwise, <c>false</c>.
+        /// <c>true</c> if [retain null values]; otherwise, <c>false</c>.
         /// </value>
-        [DefaultValue(true), JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        [DefaultValue(true)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool RetainNullValues { get; set; }
 
         /// <summary>
         /// When true, mappings specific to this column will be used
-        /// <remarks>If you have 10 rows of data each with column "Surname" and you will for all the people with the same surname to get a new surname but shared, this should be true.</remarks>
+        /// <remarks>
+        /// If you have 10 rows of data each with column "Surname" and you will for all the people with the same surname
+        /// to get a new surname but shared, this should be true.
+        /// </remarks>
         /// </summary>
         /// <value>
-        ///   <c>true</c> if [use local value mappings]; otherwise, <c>false</c>.
+        /// <c>true</c> if [use local value mappings]; otherwise, <c>false</c>.
         /// </value>
+        [DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool UseLocalValueMappings { get; set; }
+
         /// <summary>
         /// This works the same way as <see cref="UseLocalValueMappings"/> but is shared across <see cref="TableConfig"/>'s
         /// </summary>
         /// <value>
-        ///   <c>true</c> if [use global value mappings]; otherwise, <c>false</c>.
+        /// <c>true</c> if [use global value mappings]; otherwise, <c>false</c>.
         /// </value>
+        [DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool UseGlobalValueMappings { get; set; }
     }
 }

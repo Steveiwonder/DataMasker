@@ -20,6 +20,7 @@ namespace DataMasker.Models
         /// <value>
         /// The data source.
         /// </value>
+        [JsonRequired]
         public DataSourceConfig DataSource { get; set; }
 
         /// <summary>
@@ -28,6 +29,7 @@ namespace DataMasker.Models
         /// <value>
         /// The tables.
         /// </value>
+        [JsonRequired]
         public IList<TableConfig> Tables { get; set; }
 
         /// <summary>
@@ -36,7 +38,6 @@ namespace DataMasker.Models
         /// <value>
         /// The data generation configuration.
         /// </value>
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public DataGenerationConfig DataGeneration { get; set; }
 
         public static Config Load(

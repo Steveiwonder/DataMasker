@@ -8,6 +8,9 @@ using DataMasker.DataSources;
 using DataMasker.Interfaces;
 using DataMasker.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Schema;
+using Newtonsoft.Json.Schema.Generation;
+using Newtonsoft.Json.Serialization;
 
 namespace DataMasker.Examples
 {
@@ -16,6 +19,7 @@ namespace DataMasker.Examples
         private static void Main(
             string[] args)
         {
+            GenerateSchema();
             Example1();
         }
 
@@ -42,6 +46,26 @@ namespace DataMasker.Examples
                 //update all rows
                 dataSource.UpdateRows(rows, tableConfig);
             }
+        }
+
+        private static void GenerateSchema()
+        {
+            JSchemaGenerator generator = new JSchemaGenerator();
+
+            generator.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            JSchema schema = generator.Generate(typeof(Config));
+            generator.GenerationProviders.Add(new StringEnumGenerationProvider());
+            schema.Title = "DataMasker.Config";
+            var writer = new StringWriter();
+            var jsonTextWriter = new JsonTextWriter(writer);
+            schema.WriteTo(jsonTextWriter);
+            dynamic parsedJson = JsonConvert.DeserializeObject(writer.ToString());
+            var prettyString = JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
+            var fileWriter = new StreamWriter("DataMasker.Config.schema.json");
+            fileWriter.WriteLine(schema.Title);
+            fileWriter.WriteLine(new string('-', schema.Title.Length));
+            fileWriter.WriteLine(prettyString);
+            fileWriter.Close();
         }
     }
 }

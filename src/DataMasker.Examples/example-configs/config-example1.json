@@ -1,6 +1,6 @@
 ﻿{
   "dataSource": {
-    "type": "InMemoryFake"   
+    "type": "InMemoryFake"
   },
   "tables": [    
     {
@@ -33,7 +33,8 @@
         },
         {
           "name": "Gender",
-          "ignore": true
+          "ignore": true,
+          "type": "None"
         },
         {
           "name": "Address",
