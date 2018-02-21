@@ -40,9 +40,11 @@ namespace DataMasker.Examples
                 foreach (IDictionary<string, object> row in rows)
                 {
                     dataMasker.Mask(row, tableConfig);
+
                     //update per row
                     //dataSource.UpdateRow(row, tableConfig);
                 }
+
                 //update all rows
                 dataSource.UpdateRows(rows, tableConfig);
             }
