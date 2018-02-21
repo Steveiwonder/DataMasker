@@ -1,10 +1,10 @@
 ﻿using System;
+using Dapper;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
-using Dapper;
 using DataMasker.Interfaces;
 using DataMasker.Models;
 using DataMasker.Utils;
@@ -17,6 +17,8 @@ namespace DataMasker.DataSources
     /// <seealso cref="IDataSource"/>
     public class SqlDataSource : IDataSource
     {
+        private readonly DataSourceConfig _sourceConfig;
+
         private readonly string _connectionString;
 
         /// <summary>
@@ -26,6 +28,7 @@ namespace DataMasker.DataSources
         public SqlDataSource(
             DataSourceConfig sourceConfig)
         {
+            _sourceConfig = sourceConfig;
             _connectionString =
                 $"User ID={sourceConfig.Config.userName};Password={sourceConfig.Config.password};Data Source={sourceConfig.Config.server};Initial Catalog={sourceConfig.Config.name};Persist Security Info=False;";
         }
@@ -100,7 +103,14 @@ namespace DataMasker.DataSources
                     string sql = BuildUpdateSql(config);
                     connection.Execute(sql, batch.Items, sqlTransaction, null, CommandType.Text);
 
-                    sqlTransaction.Commit();
+                    if (_sourceConfig.DryRun)
+                    {
+                        sqlTransaction.Rollback();
+                    }
+                    else
+                    {
+                        sqlTransaction.Commit();
+                    }
                 }
             }
         }
