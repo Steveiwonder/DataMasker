@@ -2,6 +2,9 @@
   "dataSource": {
     "type": "InMemoryFake"
   },
+  "dataGeneration": {
+    "locale": "en"
+  },
   "tables": [    
     {
       "name": "Users",
