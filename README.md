@@ -1,5 +1,5 @@
 # DataMasker
-A free data masking library.
+A free data masking and/or anonymizer library for Sql Server
 
 If you've ever needed to pull down databases from a live environment to stage or even dev you'll need to think about masking any personal information. There are options out there paid and free, however the free ones I've found do not provide genuine data and the paid options are too pricey when it's only a few tables.
 
