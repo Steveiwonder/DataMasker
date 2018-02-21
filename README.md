@@ -1,2 +1,2 @@
 # DataMasker
-A free data making library
+A free data masking library
