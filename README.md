@@ -182,3 +182,25 @@ The locale is used by [Bogus](https://github.com/bchavez/Bogus#locales) to gener
 ```
 
 Check out the Bogus page for a [list of supported locales](https://github.com/bchavez/Bogus#locales)
+
+## DataMasker.Runner
+This is a CLI interface for the data masking tool. You might want to use this as part of your continuous integration if you backup/restore your live environments back to stage/dev after a release
+
+The options are as follows
+
+
+>  -c, --config-file         Required. json config file
+>
+>  -d, --dry-run             (Default: false) Dry run, only supported by some data sources
+>
+>  -l, --locale              Set the locale
+>
+>  -u, --update-batchsize    Batch Size to use when upating records
+>
+>  --print-options           (Default: false) Prints the arguments passed into this tool in a json format
+>
+>  --no-output               (Default: false) If set, not output to the console will be written
+>
+>  --help                    Display this help screen.
+>
+>  --version                 Display version information.
