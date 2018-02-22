@@ -46,6 +46,6 @@ namespace DataMasker.Models
         }
 
 
-        public string Locale { get; set; } = "en";
+        public string Locale { get; set; }
     }
 }

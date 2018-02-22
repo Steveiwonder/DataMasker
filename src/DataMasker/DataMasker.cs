@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Bogus.DataSets;
 using DataMasker.Interfaces;
@@ -50,11 +51,14 @@ namespace DataMasker
 
 
                 existingValue = _dataGenerator.GetValue(tableColumn, existingValue, gender);
+
                 //replace the original value
                 obj[tableColumn.Name] = existingValue;
             }
 
             return obj;
         }
+
+
     }
 }

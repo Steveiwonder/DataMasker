@@ -26,7 +26,7 @@ namespace DataMasker.Models
         /// The type.
         /// </value>
         [JsonRequired]
-        public DataType Type { get; set; }
+        public DataType Type { get; set; }  
 
         /// <summary>
         /// Specific value mappings

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DataMasker.Interfaces;
 using DataMasker.Models;
 
@@ -10,7 +8,8 @@ namespace DataMasker.DataSources
 {
     public class InMemoryFakeDataSource : IDataSource
     {
-        private IDictionary<string, IList<IDictionary<string, object>>> tables;
+        private readonly IDictionary<string, IList<IDictionary<string, object>>> tables;
+
         private IDictionary<string, IList<IDictionary<string, object>>> tableData
             => new Dictionary<string, IList<IDictionary<string, object>>>
             {
@@ -72,13 +71,16 @@ namespace DataMasker.DataSources
             IDictionary<string, object> row,
             TableConfig tableConfig)
         {
+
             int index = tables[tableConfig.Name]
                .IndexOf(
                     tables[tableConfig.Name]
                        .Single(
                             x =>
                             {
-                                bool e = x["UserId"].Equals(row["UserId"]);
+                                bool e = x["UserId"]
+                                   .Equals(row["UserId"]);
+
                                 return e;
                             }));
 
@@ -88,8 +90,10 @@ namespace DataMasker.DataSources
         /// <inheritdoc/>
         public void UpdateRows(
             IEnumerable<IDictionary<string, object>> rows,
-            TableConfig config)
+            TableConfig config,
+            Action<int> updatedCallback)
         {
+
             foreach (IDictionary<string, object> dictionary in rows)
             {
                 UpdateRow(dictionary, config);

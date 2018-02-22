@@ -8,6 +8,7 @@ namespace DataMasker.Interfaces
     /// </summary>
     public interface IDataMasker
     {
+
         /// <summary>
         /// Masks the specified object with new data
         /// </summary>

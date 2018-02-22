@@ -57,6 +57,8 @@
   <ItemGroup>
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="ProgressbarUpdate.cs" />
+    <Compile Include="ProgressType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
 using DataMasker.Interfaces;
 using DataMasker.Models;
 using DataMasker.Utils;
@@ -33,6 +32,7 @@ namespace DataMasker.DataSources
                 $"User ID={sourceConfig.Config.userName};Password={sourceConfig.Config.password};Data Source={sourceConfig.Config.server};Initial Catalog={sourceConfig.Config.name};Persist Security Info=False;";
         }
 
+
         /// <summary>
         /// Gets the data.
         /// </summary>
@@ -45,7 +45,7 @@ namespace DataMasker.DataSources
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                return (IEnumerable<IDictionary<string, object>>)connection.Query(BuildSelectSql(tableConfig));
+                return (IEnumerable<IDictionary<string, object>>) connection.Query(BuildSelectSql(tableConfig));
             }
         }
 
@@ -66,18 +66,12 @@ namespace DataMasker.DataSources
             }
         }
 
-        /// <summary>
-        /// Updates the rows.
-        /// </summary>
-        /// <param name="rows">The rows.</param>
-        /// <param name="config">The configuration.</param>
-        /// <param name="batchSize">
-        /// When set <see cref="rows"/> will be split into batches of this size and passed to the source
-        /// for updating
-        /// </param>
+
+        /// <inheritdoc/>
         public void UpdateRows(
             IEnumerable<IDictionary<string, object>> rows,
-            TableConfig config)
+            TableConfig config,
+            Action<int> updatedCallback)
         {
             int? batchSize = _sourceConfig.UpdateBatchSize;
             if (batchSize == null ||
@@ -92,6 +86,7 @@ namespace DataMasker.DataSources
                     objects,
                     enumerable) => enumerable.Count() < batchSize);
 
+            int totalUpdated = 0;
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
@@ -110,6 +105,13 @@ namespace DataMasker.DataSources
                     else
                     {
                         sqlTransaction.Commit();
+                    }
+
+
+                    if (updatedCallback != null)
+                    {
+                        totalUpdated += batch.Items.Count;
+                        updatedCallback.Invoke(totalUpdated);
                     }
                 }
             }

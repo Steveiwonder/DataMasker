@@ -42,7 +42,7 @@ namespace DataMasker
             DataGenerationConfig dataGenerationConfig)
         {
             _dataGenerationConfig = dataGenerationConfig;
-            _faker = new Faker(dataGenerationConfig.Locale);
+            _faker = new Faker(dataGenerationConfig.Locale ?? "en");
             _randomizer = new Randomizer();
             _globalValueMappings = new Dictionary<string, IDictionary<object, object>>();
         }

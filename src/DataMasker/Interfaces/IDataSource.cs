@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using DataMasker.Models;
 
 namespace DataMasker.Interfaces
@@ -8,7 +9,6 @@ namespace DataMasker.Interfaces
     /// </summary>
     public interface IDataSource
     {
-
         /// <summary>
         /// Gets the data.
         /// </summary>
@@ -31,8 +31,13 @@ namespace DataMasker.Interfaces
         /// </summary>
         /// <param name="rows">The rows.</param>
         /// <param name="config">The configuration.</param>
+        /// <param name="updatedCallback">
+        /// Called when a number of items have been updated, the value passed is the total items
+        /// updated
+        /// </param>
         void UpdateRows(
             IEnumerable<IDictionary<string, object>> rows,
-            TableConfig config);
+            TableConfig config,
+            Action<int> updatedCallback = null);
     }
 }
