@@ -145,7 +145,8 @@ There is some additional configuration required when using  `SqlServer`, on the 
   }
 }
 ```
-
+### `SqlServer` Data Source
+Dry run is supported. A transaction is create, the update statement is executed and then the transaction is rolled back
 
 ## Gender
 To ensure the new data is more accurate and believable you may want to take gender into consideration when generating certain data types such as names. This can be achieved with a small about of additional config. If no gender is specified then non gender specific names are generated.
@@ -189,17 +190,18 @@ This is a CLI interface for the data masking tool. You might want to use this as
 The options are as follows
 
 
->  -c, --config-file         Required. json config file
+>  -c, --config-file         Required. the json configuration to be
 >
->  -d, --dry-run             (Default: false) Dry run, only supported by some data sources
+>  -d, --dry-run             (Default: false) dry run, only supported by some data sources
 >
->  -l, --locale              Set the locale
+>  -l, --locale              set the locale
 >
->  -u, --update-batchsize    Batch Size to use when upating records
+>  -u, --update-batchsize    batch size to use when upating records
 >
->  --print-options           (Default: false) Prints the arguments passed into this tool in a json format
+>  --print-options           (Default: false) prints the arguments passed into this tool in a json format with executing
+>                            anything else
 >
->  --no-output               (Default: false) If set, not output to the console will be written
+>  --no-output               (Default: false) if set, no output to the console will be written
 >
 >  --help                    Display this help screen.
 >
