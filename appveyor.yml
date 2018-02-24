@@ -6,6 +6,6 @@ build:
   project: src/DataMasker.sln
   verbosity: minimal
 artifacts:
-- path: src\DataMasker.Runner\bin\release\*.*
+- path: src\DataMasker.Runner\bin\release\
   name: CLI Release
-  type: Zip
+  type: Auto
