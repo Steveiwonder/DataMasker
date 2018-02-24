@@ -7,7 +7,7 @@ build:
   verbosity: minimal
 artifacts:
 - path: src\DataMasker.Runner\bin\release\
-  name: datamasker.cli.release.{version}
+  name: "datamasker.cli.release.{version}"
   type: Auto
   
 assembly_info:
