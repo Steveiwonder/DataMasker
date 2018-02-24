@@ -7,7 +7,7 @@ build:
   verbosity: minimal
 artifacts:
 - path: src\DataMasker.Runner\bin\release\
-  name: "datamasker.cli.master.latest$(APPVEYOR_BUILD_VERSION)"
+  name: "datamasker.runner.${APPVEYOR_REPO_BRANCH}.$(APPVEYOR_BUILD_VERSION)"
   type: Auto
   
 assembly_info:

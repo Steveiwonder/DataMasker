@@ -185,6 +185,9 @@ The locale is used by [Bogus](https://github.com/bchavez/Bogus#locales) to gener
 Check out the Bogus page for a [list of supported locales](https://github.com/bchavez/Bogus#locales)
 
 ## DataMasker.Runner (CLI)
+
+The latest CLI build can be found [here](https://ci.appveyor.com/project/Steveiwonder/datamasker/build/artifacts)
+
 This is a CLI interface for the data masking tool. You might want to use this as part of your continuous integration if you backup/restore your live environments back to stage/dev after a release
 
 The options are as follows
