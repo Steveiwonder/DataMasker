@@ -1,0 +1,11 @@
+version: 1.0.{build}
+configuration: Release
+before_build:
+- cmd: nuget restore "src\DataMasker.sln"
+build:
+  project: src/DataMasker.sln
+  verbosity: minimal
+artifacts:
+- path: src\DataMasker.Runner\bin\release\*.*
+  name: CLI Release
+  type: Zip

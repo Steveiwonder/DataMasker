@@ -23,7 +23,8 @@ namespace DataMasker.Runner
             //Debugger.Launch();
             Parser.Default.ParseArguments<Options>(args)
                   .WithParsed(
-                       options => {
+                       options =>
+                       {
                            cliOptions = options;
                            try
                            {
@@ -45,15 +46,15 @@ namespace DataMasker.Runner
 
             _progressBars.Add(
                 ProgressType.Overall,
-                new ProgressbarUpdate {ProgressBar = new ProgressBar(PbStyle.SingleLine, 0), LastMessage = "Overall Progress"});
+                new ProgressbarUpdate { ProgressBar = new ProgressBar(PbStyle.SingleLine, 0), LastMessage = "Overall Progress" });
 
             _progressBars.Add(
                 ProgressType.Updating,
-                new ProgressbarUpdate {ProgressBar = new ProgressBar(PbStyle.SingleLine, 0), LastMessage = "Update Progress"});
+                new ProgressbarUpdate { ProgressBar = new ProgressBar(PbStyle.SingleLine, 0), LastMessage = "Update Progress" });
 
             _progressBars.Add(
                 ProgressType.Masking,
-                new ProgressbarUpdate {ProgressBar = new ProgressBar(PbStyle.SingleLine, 0), LastMessage = "Masking Progress"});
+                new ProgressbarUpdate { ProgressBar = new ProgressBar(PbStyle.SingleLine, 0), LastMessage = "Masking Progress" });
         }
 
         private static void UpdateProgress(
@@ -81,7 +82,6 @@ namespace DataMasker.Runner
             _progressBars[progressType]
                .ProgressBar.Refresh(current, message);
         }
-
         private static void RuntimeArgumentHandle()
         {
             if (cliOptions.PrintOptions)
