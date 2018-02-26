@@ -80,8 +80,6 @@ Example Config
 
 ## Column Configuration
 
-Available data Types
-
 | Property Name | Values |
 | ------------- | ------ |
 | type | None, Bogus, FirstName, lastName, DateOfBirth, Rant, StringFormat, FullAddress, PhoneNumber |
@@ -98,7 +96,7 @@ Available data Types
 | useGlobalValueMappings | true/false |
 
 ##### None
-To use None you must specify either `valueMappings` or `useValue`, no data will be generated for this type. If you specify only `valueMappings` and the target value is not found, it will do nothing.
+To use None you must specify either `valueMappings` or `useValue`, no data will be generated for this type. If you specify only `valueMappings` and the target value is not found, an error will be thrown.
 ```json
 {
   "name": "Title",
@@ -129,7 +127,7 @@ Bogus is a type that when specified requires the `stringFormatPattern` option, w
   "retainNullValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false",
-  "stringFormatPattern": "+1 ########-#-###-#"
+  "stringFormatPattern": "{{phonenumbers.phonenumber}}"
 }
 ```
 
@@ -245,6 +243,7 @@ Check out the [Bogus API](https://github.com/bchavez/Bogus#bogus-api-support) fo
   "retainNullValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false",
+  "stringFormatPattern": "#####****?????"
 }
 ```
 
@@ -270,7 +269,7 @@ Check out the [Bogus API](https://github.com/bchavez/Bogus#bogus-api-support) fo
 ```json
 {
   "name": "PhoneNumber",
-  "type": "Bogus",
+  "type": "PhoneNumber",
   "valueMappings": {    
     "+555-555-555": "+444-555-555-55"
   },
@@ -282,6 +281,8 @@ Check out the [Bogus API](https://github.com/bchavez/Bogus#bogus-api-support) fo
   "stringFormatPattern": "+1 ########-#-###-#"
 }
 ```
+
+`name` & `type` are required everything else is optional unless specified
 
 Most data can be generated perfectly fine just by uses the `Bogus` or `StringFormat` data types.
 
