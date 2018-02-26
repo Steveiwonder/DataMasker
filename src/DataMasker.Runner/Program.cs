@@ -21,7 +21,7 @@ namespace DataMasker.Runner
         private static void Main(
             string[] args)
         {
-            Debugger.Launch();
+
             Parser.Default.ParseArguments<Options>(args)
                   .WithParsed(
                        options =>
