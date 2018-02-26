@@ -284,7 +284,7 @@ Check out the [Bogus API](https://github.com/bchavez/Bogus#bogus-api-support) fo
 
 `name` & `type` are required everything else is optional unless specified
 
-Most data can be generated perfectly fine just by uses the `Bogus` or `StringFormat` data types.
+Most data can be generated perfectly fine just by using the `Bogus` or `StringFormat` data types.
 
 ## Min & max
 Only some data types currently use the min/max properties on the column configurations.
