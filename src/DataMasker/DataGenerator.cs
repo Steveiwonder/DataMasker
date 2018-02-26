@@ -13,6 +13,16 @@ namespace DataMasker
     /// <seealso cref="DataMasker.Interfaces.IDataGenerator"/>
     public class DataGenerator : IDataGenerator
     {
+        private static readonly DateTime DEFAULT_MIN_DATE = new DateTime(1900, 1, 1, 0, 0, 0, 0);
+
+        private static readonly DateTime DEFAULT_MAX_DATE = DateTime.Now;
+
+        private const int DEFAULT_LOREM_MIN = 5;
+
+        private const int DEFAULT_LOREM_MAX = 30;
+
+        private const int DEFAULT_RANT_MAX = 25;
+
         /// <summary>
         /// The data generation configuration
         /// </summary>
@@ -184,11 +194,15 @@ namespace DataMasker
                 case DataType.LastName:
                     return _faker.Name.LastName(gender);
                 case DataType.DateOfBirth:
-                    return _faker.Date.Between(_dataGenerationConfig.MinDate, _dataGenerationConfig.MaxDate);
+                    return _faker.Date.Between(
+                        ParseMinMaxValue(columnConfig, MinMax.Min, DEFAULT_MIN_DATE),
+                        ParseMinMaxValue(columnConfig, MinMax.Max, DEFAULT_MAX_DATE));
                 case DataType.Rant:
-                    return _faker.Rant.Review();
+                    return _faker.Rant.Reviews(lines: ParseMinMaxValue(columnConfig, MinMax.Max, DEFAULT_RANT_MAX));
                 case DataType.Lorem:
-                    return _faker.Lorem.Sentence(columnConfig.Max);
+                    return _faker.Lorem.Sentence(
+                        ParseMinMaxValue(columnConfig, MinMax.Min, DEFAULT_LOREM_MIN),
+                        ParseMinMaxValue(columnConfig, MinMax.Max, DEFAULT_LOREM_MAX));
                 case DataType.StringFormat:
                     return _randomizer.Replace(columnConfig.StringFormatPattern);
                 case DataType.FullAddress:
@@ -230,6 +244,37 @@ namespace DataMasker
             }
 
             throw new ArgumentOutOfRangeException(nameof(dataType), dataType, null);
+        }
+
+        private dynamic ParseMinMaxValue(
+            ColumnConfig columnConfig,
+            MinMax minMax,
+            dynamic defaultValue = null)
+        {
+            string unparsedValue = minMax == MinMax.Max ? columnConfig.Max : columnConfig.Min;
+            if (string.IsNullOrEmpty(unparsedValue))
+            {
+                return defaultValue;
+            }
+
+            switch (columnConfig.Type)
+            {
+                case DataType.Rant:
+                case DataType.Lorem:
+                    return int.Parse(unparsedValue);
+
+                case DataType.DateOfBirth:
+                    return DateTime.Parse(unparsedValue);
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(columnConfig.Type), columnConfig.Type, null);
+        }
+
+        private enum MinMax
+        {
+            Min = 0,
+
+            Max = 1
         }
     }
 }

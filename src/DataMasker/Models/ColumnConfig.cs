@@ -26,7 +26,7 @@ namespace DataMasker.Models
         /// The type.
         /// </value>
         [JsonRequired]
-        public DataType Type { get; set; }  
+        public DataType Type { get; set; }
 
         /// <summary>
         /// Specific value mappings
@@ -68,8 +68,16 @@ namespace DataMasker.Models
         /// The maximum.
         /// </value>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        [DefaultValue(10)]
-        public int Max { get; set; }
+        public string Max { get; set; }
+
+        /// <summary>
+        /// Only used for some data tables, but when generating lorem ipsum you specify the number of words
+        /// </summary>
+        /// <value>
+        /// The minimum.
+        /// </value>
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public string Min { get; set; }
 
         /// <summary>
         /// If the <see cref="Type"/> is <see cref="DataType.StringFormat"/> you can specify any a format to use when generating

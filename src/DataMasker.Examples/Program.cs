@@ -18,7 +18,6 @@ namespace DataMasker.Examples
         private static void Main(
             string[] args)
         {
-            GenerateSchema();
             Example1();
         }
 
