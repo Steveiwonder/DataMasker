@@ -1,6 +1,7 @@
 ﻿using System;
 using CommandLine;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace DataMasker.Runner
         private static void Main(
             string[] args)
         {
-            //Debugger.Launch();
+            Debugger.Launch();
             Parser.Default.ParseArguments<Options>(args)
                   .WithParsed(
                        options =>
