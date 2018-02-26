@@ -51,7 +51,9 @@ Example Config
         },
         {
           "name": "DOB",
-          "type": "DateOfBirth"
+          "type": "DateOfBirth",
+          "min" :"1901-01-01",
+          "max": "2000-0101"
         },
         {
           "name": "Gender",
@@ -75,6 +77,218 @@ Example Config
   ]
 }
 ```
+
+## Column Configuration
+
+Available data Types
+
+| Property Name | Values |
+| ------------- | ------ |
+| type | None, Bogus, FirstName, lastName, DateOfBirth, Rant, StringFormat, FullAddress, PhoneNumber |
+| name | Database column name |
+| valueMappings | Object with value mappings, *e.g map "James" to "John"*
+| useGenderColumn | Name of the database column to use as for the gender |
+| ignore | true/false
+| min | Maxiumum value to use for the given data type |
+| max | Minimum value to use for the given data type |
+| stringFormatPattern | From [Bogus](https://github.com/bchavez/Bogus#replace), numbers #, letters ?, or * random number or letter |
+| useValue | A hardcoded value to use for every row |
+| retainNullValues | true/false |
+| useLocalValueMappings | true/false |
+| useGlobalValueMappings | true/false |
+
+##### None
+To use None you must specify either `valueMappings` or `useValue`, no data will be generated for this type. If you specify only `valueMappings` and the target value is not found, it will do nothing.
+```json
+{
+  "name": "Title",
+  "type": "None",
+  "valueMappings": {    
+    "Mr": "Master"
+  },
+  "ignore":"true/false",
+  "useValue": "Miss",
+  "retainNullValues": "true/false",
+  "useLocalValueMappings": "true/false",
+  "useGlobalValueMappings": "true/false"
+}
+```
+
+##### Bogus
+Bogus is a type that when specified requires the `stringFormatPattern` option, which is passed directly to the Bogus API, see [here](https://github.com/bchavez/Bogus#bogus-api-support) for available options
+
+```json
+{
+  "name": "PhoneNumber",
+  "type": "Bogus",
+  "valueMappings": {    
+    "+555-555-555": "+444-555-555-55"
+  },
+  "ignore":"true/false",
+  "useValue": "+50559-5-5-555",
+  "retainNullValues": "true/false",
+  "useLocalValueMappings": "true/false",
+  "useGlobalValueMappings": "true/false",
+  "stringFormatPattern": "+1 ########-#-###-#"
+}
+```
+
+##### FirstName
+```json
+{
+  "name": "FirstName",
+  "type": "FirstName",
+  "valueMappings": {    
+    "James": "Bob"
+  },
+  "ignore":"true/false",
+  "useValue": "Steve",
+  "retainNullValues": "true/false",
+  "useLocalValueMappings": "true/false",
+  "useGlobalValueMappings": "true/false",
+  "useGenderColumn": "Gender"
+}
+```
+
+##### LastName
+
+```json
+{
+  "name": "Surname",
+  "type": "LastName",
+  "valueMappings": {    
+    "Smith": "Jojnes"
+  },
+  "ignore":"true/false",
+  "useValue": "Timms",
+  "retainNullValues": "true/false",
+  "useLocalValueMappings": "true/false",
+  "useGlobalValueMappings": "true/false"
+}
+```
+##### DateOfBirth
+- `min` will default to 1901-01-01
+- `max` will default to current date
+- date format is `fullyear-month-day`
+
+
+
+```json
+{
+  "name": "DOB",
+  "type": "DateOfBirth",
+  "valueMappings": {    
+    "1990-01-02": "1990-02-02"
+  },
+  "ignore":"true/false",
+  "useValue": "1940-02-02",
+  "retainNullValues": "true/false",
+  "useLocalValueMappings": "true/false",
+  "useGlobalValueMappings": "true/false",
+  "min": "1901-12-25",
+  "max": "2000-11-20"
+}
+```
+
+##### Rant
+- `max` will default to 25
+
+```json
+{
+  "name": "Comments",
+  "type": "Rant",
+  "valueMappings": {    
+    "A comment": "Becomes this"
+  },
+  "ignore":"true/false",
+  "useValue": "A really important comment",
+  "retainNullValues": "true/false",
+  "useLocalValueMappings": "true/false",
+  "useGlobalValueMappings": "true/false",
+  "max": 15
+}
+```
+
+##### Lorem
+- `min` will default to 5
+- `max` will default to 30
+
+```json
+{
+  "name": "Comments",
+  "type": "Lorem",
+  "valueMappings": {    
+    "A comment": "Becomes this"
+  },
+  "ignore":"true/false",
+  "useValue": "A really important comment",
+  "retainNullValues": "true/false",
+  "useLocalValueMappings": "true/false",
+  "useGlobalValueMappings": "true/false",
+  "min": 5,
+  "max": 15
+}
+```
+##### StringFormat
+
+Check out the [Bogus API](https://github.com/bchavez/Bogus#bogus-api-support) for supported values
+
+```json
+{
+  "name": "Comments",
+  "type": "StringFormat",
+  "valueMappings": {    
+    "A comment": "Becomes this"
+  },
+  "ignore":"true/false",
+  "useValue": "A really important comment",
+  "retainNullValues": "true/false",
+  "useLocalValueMappings": "true/false",
+  "useGlobalValueMappings": "true/false",
+}
+```
+
+##### FullAddress
+
+```json
+{
+  "name": "Address",
+  "type": "FullAddress",
+  "valueMappings": {    
+    "55 Long Name Street, Long Name Village, Long Name Town...": "Becomes this"
+  },
+  "ignore":"true/false",
+  "useValue": "55 Long Name Street, Long Name Village, Long Name Town...",
+  "retainNullValues": "true/false",
+  "useLocalValueMappings": "true/false",
+  "useGlobalValueMappings": "true/false",
+}
+```
+
+##### PhoneNumber
+
+```json
+{
+  "name": "PhoneNumber",
+  "type": "Bogus",
+  "valueMappings": {    
+    "+555-555-555": "+444-555-555-55"
+  },
+  "ignore":"true/false",
+  "useValue": "+50559-5-5-555",
+  "retainNullValues": "true/false",
+  "useLocalValueMappings": "true/false",
+  "useGlobalValueMappings": "true/false",
+  "stringFormatPattern": "+1 ########-#-###-#"
+}
+```
+
+Most data can be generated perfectly fine just by uses the `Bogus` or `StringFormat` data types.
+
+## Min & max
+Only some data types currently use the min/max properties on the column configurations.
+
+* Lorem, Rant & DOB
 
 Example Usage
 ```csharp
