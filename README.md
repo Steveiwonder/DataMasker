@@ -9,6 +9,11 @@ Data generation is provided by [https://github.com/bchavez/Bogus](https://github
 
 >Bogus will help you load databases, UI and apps with fake data for your testing needs. If you like Bogus star ⭐️ the repository and show your friends! 😄
 
+## Nuget
+DataMasker is available as a library over on [nuget.org](https://www.nuget.org/packages/DataMasker/) should you need to customize any part of the process. Alternatively just ask for a new feature and I'll see what I can do.
+
+>install-package DataMasker
+
 ## Configuration
 All configuration is done via a .json file, the schema can be found here: [json schema](https://github.com/Steveiwonder/DataMasker/blob/master/src/DataMasker.Config.schema.json)
 
