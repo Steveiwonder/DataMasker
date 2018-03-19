@@ -1,4 +1,4 @@
-https://ci.appveyor.com/api/projects/status/g5smobkt3j6gom43/branch/master?svg=true
+![https://ci.appveyor.com/api/projects/status/g5smobkt3j6gom43/branch/master?svg=true](https://ci.appveyor.com/api/projects/status/g5smobkt3j6gom43/branch/master?svg=true)
 
 # DataMasker
 A free data masking and/or anonymizer library for Sql Server written in .NET
