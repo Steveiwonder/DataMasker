@@ -301,7 +301,7 @@ Only some data types currently use the min/max properties on the column configur
 Example Usage
 ```csharp
 //load our configuration
-Config config = Config.LoadConfig($"example-configs\\config-example1.json")
+Config config = Config.Load($"example-configs\\config-example1.json")
 
 //create a data masker
 IDataMasker dataMasker = new DataMasker(new DataGenerator(config.DataGeneration));
