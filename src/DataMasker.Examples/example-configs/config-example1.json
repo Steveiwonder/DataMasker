@@ -2,7 +2,7 @@
   "dataSource": {
     "type": "SqlServer",
     "config": {
-      "connectionString": "awdawda"
+      "connectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=Clients;Integrated Security=SSPI;"
     }
   },
   "dataGeneration": {
