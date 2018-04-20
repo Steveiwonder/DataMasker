@@ -28,8 +28,16 @@ namespace DataMasker.DataSources
             DataSourceConfig sourceConfig)
         {
             _sourceConfig = sourceConfig;
-            _connectionString =
-                $"User ID={sourceConfig.Config.userName};Password={sourceConfig.Config.password};Data Source={sourceConfig.Config.server};Initial Catalog={sourceConfig.Config.name};Persist Security Info=False;";
+            if (sourceConfig.Config.connectionString!=null && !string.IsNullOrWhiteSpace(sourceConfig.Config.connectionString.ToString()))
+            {
+                _connectionString = sourceConfig.Config.connectionString;
+            }
+            else
+            {
+                _connectionString =
+                    $"User ID={sourceConfig.Config.userName};Password={sourceConfig.Config.password};Data Source={sourceConfig.Config.server};Initial Catalog={sourceConfig.Config.name};Persist Security Info=False;";
+            }
+
         }
 
 
@@ -45,7 +53,7 @@ namespace DataMasker.DataSources
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                return (IEnumerable<IDictionary<string, object>>) connection.Query(BuildSelectSql(tableConfig));
+                return (IEnumerable<IDictionary<string, object>>)connection.Query(BuildSelectSql(tableConfig));
             }
         }
 
