@@ -354,7 +354,9 @@ There are only two `DataSources` available at the moment
 * `InMemoryFake` - is there only for the examples
 * `SqlServer` - can pull and push data to SQL Server
 
-There is some additional configuration required when using  `SqlServer`, on the `dataSource` object a dynamic `config` property is available, you'll need to supply the name, server, userName & password for the connection
+There is some additional configuration required when using  `SqlServer`, on the `dataSource` object a dynamic `config` property is available, you'll need to supply the name, server, userName & password for the connection or a connection string.
+
+*N.B. if the "connectionString" value is set name, server, userName & password will be ignored*
 ```json
 {
   "dataSource":{
@@ -362,13 +364,14 @@ There is some additional configuration required when using  `SqlServer`, on the 
       "name": "xxx",
       "server": "xxx",
       "userName": "xxx",
-      "password": "xxx"
+      "password": "xxx",
+      "connectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=Clients;Integrated Security=SSPI;"
     }
   }
 }
 ```
 ### `SqlServer` Data Source
-Dry run is supported. A transaction is create, the update statement is executed and then the transaction is rolled back
+Dry run is supported. A transaction is created, the update statement is executed and then the transaction is rolled back.
 
 ## Gender
 To ensure the new data is more accurate and believable you may want to take gender into consideration when generating certain data types such as names. This can be achieved with a small about of additional config. If no gender is specified then non gender specific names are generated.

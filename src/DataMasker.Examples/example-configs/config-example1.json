@@ -1,6 +1,9 @@
 ﻿{
   "dataSource": {
-    "type": "InMemoryFake"
+    "type": "SqlServer",
+    "config": {
+      "connectionString": "awdawda"
+    }
   },
   "dataGeneration": {
     "locale": "en"
