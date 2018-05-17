@@ -10,7 +10,7 @@ namespace DataMasker
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="DataMasker.Interfaces.IDataGenerator"/>
+    /// <seealso cref="IDataGenerator"/>
     public class DataGenerator : IDataGenerator
     {
         private static readonly DateTime DEFAULT_MIN_DATE = new DateTime(1900, 1, 1, 0, 0, 0, 0);
@@ -167,7 +167,7 @@ namespace DataMasker
                 }
                 else
                 {
-                    _globalValueMappings.Add(columnConfig.Name, new Dictionary<object, object> {{existingValue, newValue}});
+                    _globalValueMappings.Add(columnConfig.Name, new Dictionary<object, object> { { existingValue, newValue } });
                 }
             }
             else if (columnConfig.UseLocalValueMappings)
@@ -182,7 +182,7 @@ namespace DataMasker
         /// <param name="columnConfig">The column configuration.</param>
         /// <param name="gender">The gender.</param>
         /// <returns></returns>
-        /// <exception cref="System.ArgumentOutOfRangeException">Type - null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Type - null</exception>
         private object GetValue(
             ColumnConfig columnConfig,
             Name.Gender? gender = null)
@@ -223,7 +223,7 @@ namespace DataMasker
         /// <param name="dataType">Type of the data.</param>
         /// <param name="val">The value.</param>
         /// <returns></returns>
-        /// <exception cref="System.ArgumentOutOfRangeException">dataType - null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">dataType - null</exception>
         private object ConvertValue(
             DataType dataType,
             string val)

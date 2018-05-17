@@ -136,5 +136,12 @@ namespace DataMasker.Models
         [DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool UseGlobalValueMappings { get; set; }
+
+        /// <summary>
+        /// When true, any values replaced in this column will be unique
+        /// </summary>
+        [DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool Unique { get; set; }
     }
 }
