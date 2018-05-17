@@ -63,6 +63,12 @@ Example Config
           "max": "2000-0101"
         },
         {
+          "name": "EmailAddress",
+          "type": "Bogus",
+          "unique": true,
+          "stringFormatPattern": "{{internet.email}}"
+        },
+        {
           "name": "Gender",
           "ignore": true,
           "type": "None"
@@ -101,6 +107,7 @@ Example Config
 | retainNullValues | true/false |
 | useLocalValueMappings | true/false |
 | useGlobalValueMappings | true/false |
+| unique | true/false - when true it will attempt to generate a unique value for this column|
 
 ##### None
 To use None you must specify either `valueMappings` or `useValue`, no data will be generated for this type. If you specify only `valueMappings` and the target value is not found, an error will be thrown.
