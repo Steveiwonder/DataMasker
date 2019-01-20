@@ -53,6 +53,11 @@
         /// <summary>
         /// The phone number
         /// </summary>
-        PhoneNumber
+        PhoneNumber,
+
+        /// <summary>
+        /// Indicates that the column value is computed from other indicated columns
+        /// </summary>
+        Computed
     }
 }
