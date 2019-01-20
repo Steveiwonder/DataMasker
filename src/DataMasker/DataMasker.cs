@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Bogus.DataSets;
 using DataMasker.Interfaces;
 using DataMasker.Models;
@@ -48,33 +49,54 @@ namespace DataMasker
             TableConfig tableConfig)
         {
 
-            foreach (ColumnConfig columnConfig in tableConfig.Columns.Where(x => !x.Ignore))
+            foreach (ColumnConfig columnConfig in tableConfig.Columns.Where(x => !x.Ignore && x.Type != DataType.Computed))
             {
                 object existingValue = obj[columnConfig.Name];
 
                 Name.Gender? gender = null;
                 if (!string.IsNullOrEmpty(columnConfig.UseGenderColumn))
                 {
-                    object g = obj[columnConfig.UseGenderColumn];
-                    gender = Utils.Utils.TryParseGender(g?.ToString());
+                  object g = obj[columnConfig.UseGenderColumn];
+                  gender = Utils.Utils.TryParseGender(g?.ToString());
                 }
 
                 if (columnConfig.Unique)
                 {
-                    existingValue = GetUniqueValue(tableConfig.Name, columnConfig, existingValue, gender);
+                  existingValue = GetUniqueValue(tableConfig.Name, columnConfig, existingValue, gender);
                 }
                 else
                 {
-                    existingValue = _dataGenerator.GetValue(columnConfig, existingValue, gender);
+                  existingValue = _dataGenerator.GetValue(columnConfig, existingValue, gender);
                 }
-
-
-
                 //replace the original value
                 obj[columnConfig.Name] = existingValue;
             }
 
-            return obj;
+          foreach (ColumnConfig columnConfig in tableConfig.Columns.Where(x => !x.Ignore && x.Type == DataType.Computed))
+          {
+            var separator = columnConfig.Separator ?? " ";
+            StringBuilder colValue = new StringBuilder();
+            bool first = true;
+            foreach (var sourceColumn in columnConfig.SourceColumns)
+            {
+              if (!obj.ContainsKey(sourceColumn))
+              {
+                throw new Exception($"Source column {sourceColumn} could not be found.");
+              }
+
+              if (first)
+              {
+                first = false;
+              }
+              else
+              {
+                colValue.Append(separator);
+              }
+              colValue.Append(obj[sourceColumn] ?? String.Empty);
+             }
+            obj[columnConfig.Name] = colValue.ToString();
+          }
+          return obj;
         }
 
         private object GetUniqueValue(string tableName,

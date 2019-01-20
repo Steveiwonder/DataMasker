@@ -20,7 +20,7 @@ namespace DataMasker.DataSources
                         new Dictionary<string, object>
                         {
                             {"UserId", 1},
-                            {"FirstName", "Steve"},
+                            {"  FirstName", "Steve"},
                             {"LastName", "Smith"},
                             {"Password", "SecurePassword!!!11"},
                             {"DOB", DateTime.Parse("1974-09-23")},

@@ -211,6 +211,8 @@ namespace DataMasker
                     return _faker.Phone.PhoneNumber(columnConfig.StringFormatPattern);
                 case DataType.Bogus:
                     return _faker.Parse(columnConfig.StringFormatPattern);
+                case DataType.Computed:
+                  return null;
             }
 
 

@@ -149,7 +149,7 @@ namespace DataMasker.DataSources
         private string BuildSelectSql(
             TableConfig tableConfig)
         {
-            return $"SELECT  {tableConfig.Columns.GetSelectColumns(tableConfig.PrimaryKeyColumn)} FROM {tableConfig.Name}";
+            return $"SELECT  {tableConfig.Columns.GetSelectColumns(tableConfig.PrimaryKeyColumn)} FROM [{tableConfig.Name}]";
         }
     }
 }

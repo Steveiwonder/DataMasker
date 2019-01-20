@@ -27,7 +27,7 @@ namespace DataMasker
         /// <summary>
         /// Gets the update columns.
         /// </summary>
-        /// <param name="columns">The columns.</param>
+        /// 
         /// <param name="paramPrefix">The parameter prefix.</param>
         /// <returns></returns>
         public static string GetUpdateColumns(
