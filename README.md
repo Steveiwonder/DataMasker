@@ -100,8 +100,8 @@ Example Config
 | valueMappings | Object with value mappings, *e.g map "James" to "John"*
 | useGenderColumn | Name of the database column to use as for the gender |
 | ignore | true/false
-| min | Maxiumum value to use for the given data type |
-| max | Minimum value to use for the given data type |
+| min | Minimum value to use for the given data type |
+| max | Maxiumum value to use for the given data type |
 | stringFormatPattern | From [Bogus](https://github.com/bchavez/Bogus#replace), numbers #, letters ?, or * random number or letter |
 | useValue | A hardcoded value to use for every row |
 | retainNullValues | true/false |
