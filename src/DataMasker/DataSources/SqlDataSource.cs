@@ -7,6 +7,7 @@ using System.Linq;
 using DataMasker.Interfaces;
 using DataMasker.Models;
 using DataMasker.Utils;
+using System.Text.RegularExpressions;
 
 namespace DataMasker.DataSources
 {
@@ -102,9 +103,19 @@ namespace DataMasker.DataSources
                 {
                     SqlTransaction sqlTransaction = connection.BeginTransaction();
 
-
                     string sql = BuildUpdateSql(config);
-                    connection.Execute(sql, batch.Items, sqlTransaction, null, CommandType.Text);
+					//remove any spaces from variables
+					var newBatch = new List<Dictionary<string, object>>();
+					foreach (var item in batch.Items)
+					{
+						var newItem = new Dictionary<string, object>();
+						foreach (var key in item.Keys)
+						{
+							newItem.Add(Regex.Replace(key, @"\s+", "_"), item[key]);
+						}
+						newBatch.Add(newItem);
+					}
+                    connection.Execute(sql, newBatch, sqlTransaction, null, CommandType.Text);
 
                     if (_sourceConfig.DryRun)
                     {

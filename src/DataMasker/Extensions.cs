@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using DataMasker.Models;
 
 namespace DataMasker
@@ -37,7 +38,7 @@ namespace DataMasker
             return string.Join(
                                ", ",
                                columns.Where(x => !x.Ignore)
-                                      .Select(x => $"[{x.Name}] = @{paramPrefix}{x.Name}"));
+                                      .Select(x => $"[{x.Name}] = @{paramPrefix}{Regex.Replace(x.Name, @"\s+", "_")}"));
         }
     }
 }
