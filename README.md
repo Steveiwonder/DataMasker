@@ -34,6 +34,7 @@ Example Config
   "tables": [    
     {
       "name": "Users",
+      "schema": "dbo",
       "primaryKeyColumn": "UserId",
       "columns": [
         {
@@ -97,6 +98,7 @@ Example Config
 | ------------- | ------ |
 | type | None, Bogus, FirstName, lastName, DateOfBirth, Rant, StringFormat, FullAddress, PhoneNumber |
 | name | Database column name |
+| schema | Name of the schema in which the tables lives, defaults to dbo
 | valueMappings | Object with value mappings, *e.g map "James" to "John"*
 | useGenderColumn | Name of the database column to use as for the gender |
 | ignore | true/false
