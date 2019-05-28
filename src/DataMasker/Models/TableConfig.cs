@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using Newtonsoft.Json;
 
 namespace DataMasker.Models
@@ -34,5 +35,17 @@ namespace DataMasker.Models
         /// </value>
         [JsonRequired]
         public IList<ColumnConfig> Columns { get; set; }
+
+        /// <summary>
+        /// The name of the schema in which the table lives
+        /// </summary>
+        /// <value>
+        /// The columns.
+        /// </value>
+        /// <remarks>Defaults to dbo</remarks>
+        [DefaultValue("dbo")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public string Schema { get; set; }
+
     }
 }

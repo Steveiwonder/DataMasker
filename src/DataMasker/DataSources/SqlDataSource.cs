@@ -28,7 +28,7 @@ namespace DataMasker.DataSources
             DataSourceConfig sourceConfig)
         {
             _sourceConfig = sourceConfig;
-            if (sourceConfig.Config.connectionString!=null && !string.IsNullOrWhiteSpace(sourceConfig.Config.connectionString.ToString()))
+            if (sourceConfig.Config.connectionString != null && !string.IsNullOrWhiteSpace(sourceConfig.Config.connectionString.ToString()))
             {
                 _connectionString = sourceConfig.Config.connectionString;
             }
@@ -133,7 +133,7 @@ namespace DataMasker.DataSources
         private string BuildUpdateSql(
             TableConfig tableConfig)
         {
-            string sql = $"UPDATE [{tableConfig.Name}] SET ";
+            string sql = $"UPDATE [{tableConfig.Schema}].[{tableConfig.Name}] SET ";
 
             sql += tableConfig.Columns.GetUpdateColumns();
             sql += $" WHERE [{tableConfig.PrimaryKeyColumn}] = @{tableConfig.PrimaryKeyColumn}";
@@ -149,7 +149,7 @@ namespace DataMasker.DataSources
         private string BuildSelectSql(
             TableConfig tableConfig)
         {
-            return $"SELECT  {tableConfig.Columns.GetSelectColumns(tableConfig.PrimaryKeyColumn)} FROM [{tableConfig.Name}]";
+            return $"SELECT  {tableConfig.Columns.GetSelectColumns(tableConfig.PrimaryKeyColumn)} FROM [{tableConfig.Schema}].[{tableConfig.Name}]";
         }
     }
 }
