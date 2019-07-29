@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Dapper;
 using System.Collections.Generic;
 using System.Data;
@@ -50,10 +50,10 @@ namespace DataMasker.DataSources
         public IEnumerable<IDictionary<string, object>> GetData(
             TableConfig tableConfig)
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            SqlConnection connection = new SqlConnection(_connectionString);
             {
                 connection.Open();
-                return (IEnumerable<IDictionary<string, object>>)connection.Query(BuildSelectSql(tableConfig));
+                return (IEnumerable<IDictionary<string, object>>)connection.Query(BuildSelectSql(tableConfig), buffered: false);
             }
         }
 
@@ -78,6 +78,7 @@ namespace DataMasker.DataSources
         /// <inheritdoc/>
         public void UpdateRows(
             IEnumerable<IDictionary<string, object>> rows,
+            int rowCount,
             TableConfig config,
             Action<int> updatedCallback)
         {
@@ -85,17 +86,17 @@ namespace DataMasker.DataSources
             if (batchSize == null ||
                 batchSize <= 0)
             {
-                batchSize = rows.Count();
+                batchSize = rowCount;
             }
 
             IEnumerable<Batch<IDictionary<string, object>>> batches = Batch<IDictionary<string, object>>.BatchItems(
-                rows.ToArray(),
+                rows,
                 (
                     objects,
                     enumerable) => enumerable.Count() < batchSize);
 
             int totalUpdated = 0;
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+          using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
                 foreach (Batch<IDictionary<string, object>> batch in batches)
@@ -125,6 +126,16 @@ namespace DataMasker.DataSources
             }
         }
 
+        public int GetCount(TableConfig config)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                var count = connection.ExecuteScalar(BuildCountSql(config));
+                return Convert.ToInt32(count);
+            }
+        }
+
         /// <summary>
         /// Builds the update SQL.
         /// </summary>
@@ -151,5 +162,12 @@ namespace DataMasker.DataSources
         {
             return $"SELECT  {tableConfig.Columns.GetSelectColumns(tableConfig.PrimaryKeyColumn)} FROM [{tableConfig.Schema}].[{tableConfig.Name}]";
         }
+
+        private string BuildCountSql(
+            TableConfig tableConfig)
+        {
+            return $"SELECT COUNT(*) FROM [{tableConfig.Schema}].[{tableConfig.Name}]";
+        }
+
     }
 }

@@ -43,16 +43,14 @@ namespace DataMasker.Utils
         /// </param>
         /// <returns></returns>
         public static IEnumerable<Batch<T>> BatchItems(
-            T[] items,
+            IEnumerable<T> items,
             Func<T, IEnumerable<T>, bool> addToCurrentBatchPredicate)
         {
             int currentBatchNo = 1;
-            List<Batch<T>> batchedItems = new List<Batch<T>>();
             Batch<T> currentBatch = new Batch<T>(currentBatchNo);
 
-            for (int i = 0; i < items.Length; i++)
+            foreach (var item in items)
             {
-                T item = items[i];
                 bool addToCurrentBatch = addToCurrentBatchPredicate(item, currentBatch.Items);
 
                 if (addToCurrentBatch)
@@ -61,14 +59,13 @@ namespace DataMasker.Utils
                 }
                 else
                 {
-                    batchedItems.Add(currentBatch);
+                    yield return currentBatch;
                     currentBatch = new Batch<T>(++currentBatchNo);
                     currentBatch.AddItem(item);
                 }
             }
 
-            batchedItems.Add(currentBatch);
-            return batchedItems;
+            yield return currentBatch;
         }
     }
 }
