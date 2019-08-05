@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using CommandLine;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -140,25 +140,27 @@ namespace DataMasker.Runner
                 TableConfig tableConfig = config.Tables[i];
 
 
-                //load the data, this needs optimizing for large tables
+                var rowCount = dataSource.GetCount(tableConfig);
+                UpdateProgress(ProgressType.Masking, 0, (int) rowCount, "Masking Progress");
+                UpdateProgress(ProgressType.Updating, 0, (int) rowCount, "Update Progress");
+
                 IEnumerable<IDictionary<string, object>> rows = dataSource.GetData(tableConfig);
-                UpdateProgress(ProgressType.Masking, 0, rows.Count(), "Masking Progress");
-                UpdateProgress(ProgressType.Updating, 0, rows.Count(), "Update Progress");
+
                 int rowIndex = 0;
-                foreach (IDictionary<string, object> row in rows)
+
+                var maskedRows = rows.Select(row =>
                 {
-                    //mask each row
-                    dataMasker.Mask(row, tableConfig);
                     rowIndex++;
 
                     //update per row, or see below,
                     //dataSource.UpdateRow(row, tableConfig);
                     UpdateProgress(ProgressType.Masking, rowIndex);
-                }
 
+                    return dataMasker.Mask(row, tableConfig);
+                });
 
                 //update all rows
-                dataSource.UpdateRows(rows, tableConfig, totalUpdated => UpdateProgress(ProgressType.Updating, totalUpdated));
+                dataSource.UpdateRows(maskedRows, rowCount, tableConfig, totalUpdated => UpdateProgress(ProgressType.Updating, totalUpdated));
                 UpdateProgress(ProgressType.Overall, i + 1);
             }
 

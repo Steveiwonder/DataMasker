@@ -37,7 +37,10 @@ namespace DataMasker.Interfaces
         /// </param>
         void UpdateRows(
             IEnumerable<IDictionary<string, object>> rows,
+            int rowCount,
             TableConfig config,
             Action<int> updatedCallback = null);
+
+        int GetCount(TableConfig config);
     }
 }

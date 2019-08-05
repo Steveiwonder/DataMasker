@@ -36,16 +36,18 @@ namespace DataMasker.Examples
             foreach (TableConfig tableConfig in config.Tables)
             {
                 IEnumerable<IDictionary<string, object>> rows = dataSource.GetData(tableConfig);
-                foreach (IDictionary<string, object> row in rows)
+                var rowCount = dataSource.GetCount(tableConfig);
+
+                var masked = rows.Select(row =>
                 {
-                    dataMasker.Mask(row, tableConfig);
+                    return dataMasker.Mask(row, tableConfig);
 
                     //update per row
                     //dataSource.UpdateRow(row, tableConfig);
-                }
+                });
 
                 //update all rows
-                dataSource.UpdateRows(rows, tableConfig);
+                dataSource.UpdateRows(masked, rowCount, tableConfig);
             }
         }
 

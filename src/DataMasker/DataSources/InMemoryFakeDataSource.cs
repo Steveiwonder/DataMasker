@@ -90,6 +90,7 @@ namespace DataMasker.DataSources
         /// <inheritdoc/>
         public void UpdateRows(
             IEnumerable<IDictionary<string, object>> rows,
+            int rowCount,
             TableConfig config,
             Action<int> updatedCallback)
         {
@@ -98,6 +99,11 @@ namespace DataMasker.DataSources
             {
                 UpdateRow(dictionary, config);
             }
+        }
+
+        public int GetCount(TableConfig config)
+        {
+            return tableData.Count;
         }
     }
 }
