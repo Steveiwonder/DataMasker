@@ -79,11 +79,16 @@ namespace DataMasker
                 return ConvertValue(columnConfig.Type, columnConfig.UseValue);
             }
 
-
             if (columnConfig.RetainNullValues &&
                 existingValue == null)
             {
                 return null;
+            }
+
+            if (columnConfig.RetainEmptyStringValues &&
+                (existingValue is string && string.IsNullOrWhiteSpace((string)existingValue)))
+            {
+                return existingValue;
             }
 
             if (existingValue == null)

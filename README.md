@@ -45,6 +45,7 @@ Example Config
         {
           "name": "LastName",
           "type": "LastName",
+          "retainEmptyStringValues": true,
           "useGlobalValueMappings": true,
           "valueMappings": {
             "oldValue": "Jones",
@@ -107,6 +108,7 @@ Example Config
 | stringFormatPattern | From [Bogus](https://github.com/bchavez/Bogus#replace), numbers #, letters ?, or * random number or letter |
 | useValue | A hardcoded value to use for every row |
 | retainNullValues | true/false |
+| retainEmptyStringValues | true/false - when true if the existing value is null or empty (whitespace) then it will use the original value |
 | useLocalValueMappings | true/false |
 | useGlobalValueMappings | true/false |
 | unique | true/false - when true it will attempt to generate a unique value for this column|
@@ -123,6 +125,7 @@ To use None you must specify either `valueMappings` or `useValue`, no data will 
   "ignore":"true/false",
   "useValue": "Miss",
   "retainNullValues": "true/false",
+  "retainEmptyStringValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false"
 }
@@ -141,6 +144,7 @@ Bogus is a type that when specified requires the `stringFormatPattern` option, w
   "ignore":"true/false",
   "useValue": "+50559-5-5-555",
   "retainNullValues": "true/false",
+  "retainEmptyStringValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false",
   "stringFormatPattern": "{{phonenumbers.phonenumber}}"
@@ -158,6 +162,7 @@ Bogus is a type that when specified requires the `stringFormatPattern` option, w
   "ignore":"true/false",
   "useValue": "Steve",
   "retainNullValues": "true/false",
+  "retainEmptyStringValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false",
   "useGenderColumn": "Gender"
@@ -176,6 +181,7 @@ Bogus is a type that when specified requires the `stringFormatPattern` option, w
   "ignore":"true/false",
   "useValue": "Timms",
   "retainNullValues": "true/false",
+  "retainEmptyStringValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false"
 }
@@ -197,6 +203,7 @@ Bogus is a type that when specified requires the `stringFormatPattern` option, w
   "ignore":"true/false",
   "useValue": "1940-02-02",
   "retainNullValues": "true/false",
+  "retainEmptyStringValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false",
   "min": "1901-12-25",
@@ -217,6 +224,7 @@ Bogus is a type that when specified requires the `stringFormatPattern` option, w
   "ignore":"true/false",
   "useValue": "A really important comment",
   "retainNullValues": "true/false",
+  "retainEmptyStringValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false",
   "max": 15
@@ -237,6 +245,7 @@ Bogus is a type that when specified requires the `stringFormatPattern` option, w
   "ignore":"true/false",
   "useValue": "A really important comment",
   "retainNullValues": "true/false",
+  "retainEmptyStringValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false",
   "min": 5,
@@ -257,6 +266,7 @@ Check out the [Bogus API](https://github.com/bchavez/Bogus#bogus-api-support) fo
   "ignore":"true/false",
   "useValue": "A really important comment",
   "retainNullValues": "true/false",
+  "retainEmptyStringValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false",
   "stringFormatPattern": "#####****?????"
@@ -275,6 +285,7 @@ Check out the [Bogus API](https://github.com/bchavez/Bogus#bogus-api-support) fo
   "ignore":"true/false",
   "useValue": "55 Long Name Street, Long Name Village, Long Name Town...",
   "retainNullValues": "true/false",
+  "retainEmptyStringValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false",
 }
@@ -292,6 +303,7 @@ Check out the [Bogus API](https://github.com/bchavez/Bogus#bogus-api-support) fo
   "ignore":"true/false",
   "useValue": "+50559-5-5-555",
   "retainNullValues": "true/false",
+  "retainEmptyStringValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false",
   "stringFormatPattern": "+1 ########-#-###-#"

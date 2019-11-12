@@ -21,6 +21,7 @@
         {
           "name": "LastName",
           "type": "LastName",
+          "retainEmptyStringValues": true,
           "useGlobalValueMappings": true,
           "valueMappings": {
             "oldValue": "Jones",
