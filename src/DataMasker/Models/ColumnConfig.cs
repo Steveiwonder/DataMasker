@@ -114,6 +114,17 @@ namespace DataMasker.Models
     public bool RetainNullValues { get; set; }
 
     /// <summary>
+    /// When true, if the data loaded from the source is an empty string (String.IsNullOrWhitespace), then no new data will be generated.
+    /// When false, if the data loaded from the source is an empty string (String.IsNullOrWhitespace) it will be replaced by new data
+    /// </summary>
+    /// <value>
+    /// <c>true</c> if [retain empty values]; otherwise, <c>false</c>.
+    /// </value>
+    [DefaultValue(false)]
+    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+    public bool RetainEmptyStringValues { get; set; }
+
+    /// <summary>
     /// When true, mappings specific to this column will be used
     /// <remarks>
     /// If you have 10 rows of data each with column "Surname" and you will for all the people with the same surname
