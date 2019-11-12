@@ -86,7 +86,7 @@ namespace DataMasker
             }
 
             if (columnConfig.RetainEmptyStringValues &&
-                (existingValue is string && (string.IsNullOrWhiteSpace((string)existingValue))))
+                (existingValue is string && string.IsNullOrWhiteSpace((string)existingValue)))
             {
                 return existingValue;
             }
