@@ -30,24 +30,46 @@ namespace DataMasker.Examples
         public static void Example1()
         {
             Config config = LoadConfig(1);
+
+            //create a data masker
             IDataMasker dataMasker = new DataMasker(new DataGenerator(config.DataGeneration));
+
+            //grab our dataSource from the config, note: you could just ignore the config.DataSource.Type
+            //and initialize your own instance
             IDataSource dataSource = DataSourceProvider.Provide(config.DataSource.Type, config.DataSource);
 
+            //enumerate all our tables
             foreach (TableConfig tableConfig in config.Tables)
             {
+                //load data
                 IEnumerable<IDictionary<string, object>> rows = dataSource.GetData(tableConfig);
+
+                //get row coun
                 var rowCount = dataSource.GetCount(tableConfig);
 
+
+                //here you have two options, you can update all rows in one go, or one at a time.
+                #region update all rows
+                //update all rows
                 var masked = rows.Select(row =>
                 {
+                    //mask the data
                     return dataMasker.Mask(row, tableConfig);
-
-                    //update per row
-                    //dataSource.UpdateRow(row, tableConfig);
                 });
-
-                //update all rows
+                
                 dataSource.UpdateRows(masked, rowCount, tableConfig);
+                #endregion
+                //OR
+                #region update row by row
+
+                foreach (var row in rows)
+                {
+                    //mask the data
+                    var maskedRow = dataMasker.Mask(row, tableConfig);
+                    dataSource.UpdateRow(maskedRow, tableConfig);
+                }
+
+                #endregion
             }
         }
 

@@ -1,0 +1,58 @@
+﻿[
+  {
+    "name": "Users",
+    "primaryKeyColumn": "UserId",
+    "columns": [
+      {
+        "name": "FirstName",
+        "type": "FirstName",
+        "useGenderColumn": "Gender"
+      },
+      {
+        "name": "LastName",
+        "type": "LastName",
+        "retainEmptyStringValues": true,
+        "useGlobalValueMappings": true,
+        "valueMappings": {
+          "oldValue": "Jones",
+          "newValue": "Smith"
+        }
+      },
+      {
+        "name": "Password",
+        "type": "None",
+        "retainNullValues": false,
+        "useValue": "PasswordForDevEnvironment"
+      },
+      {
+        "name": "DOB",
+        "type": "DateOfBirth",
+        "min": "1950-01-01"
+      },
+      {
+        "name": "Gender",
+        "ignore": true,
+        "type": "None"
+      },
+      {
+        "name": "Address",
+        "type": "Bogus",
+        "stringFormatPattern": "{{address.fullAddress}}",
+        "retainNullValues": false
+      },
+      {
+        "name": "ContactNumber",
+        "type": "PhoneNumber",
+        "retainNullValues": false,
+        "stringFormatPattern": "+447#########"
+      },
+      {
+        "name": "Bio",
+        "type": "Lorem",
+        "retainNullValues": false,
+        "min": 5,
+        "max": 10
+      }
+    ]
+  }
+]

@@ -17,7 +17,7 @@ DataMasker is available as a library over on [nuget.org](https://www.nuget.org/p
 >install-package DataMasker
 
 ## Configuration
-All configuration is done via a .json file, the schema can be found here: [json schema](https://github.com/Steveiwonder/DataMasker/blob/master/src/DataMasker.Config.schema.json)
+All configuration is done via a .json file, of which an example can be seen below.
 
 Example Config
 ```json
@@ -30,7 +30,7 @@ Example Config
        "password": "databasePassword",
        "server": "databaseServer"
     }   
-  },
+  },  
   "tables": [    
     {
       "name": "Users",
@@ -92,6 +92,43 @@ Example Config
   ]
 }
 ```
+
+Table configuration is supplied by either the "tables" property or "tablesConfigPath" property.
+
+If you want to keep your table configuration external to the main .json file this can be done by supplying "tablesConfigPath" with a file path. An example of this can be found in the example-configs directory in the example project.
+
+External table config json
+```json
+{
+    "dataSource": {
+    "type": "SqlServer",
+    "config": {
+       "name": "databasename",
+       "userName": "databaseUserName",
+       "password": "databasePassword",
+       "server": "databaseServer"
+    }   
+  }, 
+  "tablesConfigPath": "example-configs\\config-example2-table-config.json",
+}
+```
+or embedded
+```json
+{
+    "dataSource": {
+    "type": "SqlServer",
+    "config": {
+       "name": "databasename",
+       "userName": "databaseUserName",
+       "password": "databasePassword",
+       "server": "databaseServer"
+    }   
+  }, 
+  "tables": [... insert config here ...],
+}
+```
+
+If both `tables` and `tablesConfigPath` is supplied then `tablesConfigPath` wins.
 
 ## Column Configuration
 
@@ -323,6 +360,8 @@ Example Usage
 ```csharp
 //load our configuration
 Config config = Config.Load($"example-configs\\config-example1.json")
+// you also can pass the JSON content directly:
+// Config config = Config.LoadFromString(....);
 
 //create a data masker
 IDataMasker dataMasker = new DataMasker(new DataGenerator(config.DataGeneration));
