@@ -43,8 +43,13 @@ namespace DataMasker.Models
         public static Config Load(
             string filePath)
         {
+            return LoadFromString(File.ReadAllText(filePath));
+        }
+
+        public static Config LoadFromString(string jsonContent)
+        {
             Config config = new Config();
-            JsonConvert.PopulateObject(File.ReadAllText(filePath), config);
+            JsonConvert.PopulateObject(jsonContent, config);
             if (config.DataGeneration == null)
             {
                 config.DataGeneration = new DataGenerationConfig();
