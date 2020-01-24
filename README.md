@@ -322,7 +322,7 @@ Only some data types currently use the min/max properties on the column configur
 Example Usage
 ```csharp
 //load our configuration
-Config config = Config.Load($"example-configs\\config-example1.json")
+Config config = Config.Load($"example-configs\\config-example1.json");
 
 //create a data masker
 IDataMasker dataMasker = new DataMasker(new DataGenerator(config.DataGeneration));
@@ -336,17 +336,18 @@ foreach (TableConfig tableConfig in config.Tables)
 {
     //load the data, this needs optimizing for large tables
     IEnumerable<IDictionary<string, object>> rows = dataSource.GetData(tableConfig);
+    var masked = new List<IDictionary<string, object>>();
     foreach (IDictionary<string, object> row in rows)
     {
         //mask each row
-        dataMasker.Mask(row, tableConfig);
+        masked.Add(dataMasker.Mask(row, tableConfig));
 
         //update per row, or see below,
         //dataSource.UpdateRow(row, tableConfig);
     }
 
     //update all rows, in batches of 100
-    dataSource.UpdateRows(rows, tableConfig, 100);
+    dataSource.UpdateRows(masked, 100, tableConfig);
 }
 
 ```
