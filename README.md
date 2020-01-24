@@ -323,6 +323,8 @@ Example Usage
 ```csharp
 //load our configuration
 Config config = Config.Load($"example-configs\\config-example1.json")
+// you also can pass the JSON content directly:
+// Config config = Config.LoadFromString(....);
 
 //create a data masker
 IDataMasker dataMasker = new DataMasker(new DataGenerator(config.DataGeneration));
