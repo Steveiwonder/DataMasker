@@ -325,7 +325,7 @@ Example Usage
 Config config = Config.Load($"example-configs\\config-example1.json");
 
 //create a data masker
-IDataMasker dataMasker = new DataMasker(new DataGenerator(config.DataGeneration));
+IDataMasker dataMasker = new DataMasker.DataMasker(new DataGenerator(config.DataGeneration));
 
 //grab our dataSource from the config, note: you could just ignore the config.DataSource.Type
 //and initialize your own instance
