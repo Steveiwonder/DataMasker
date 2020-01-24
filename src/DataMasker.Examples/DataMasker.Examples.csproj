@@ -56,7 +56,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="example-configs\config-example2.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="example-configs\config-example1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="example-configs\config-example2-table-config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />

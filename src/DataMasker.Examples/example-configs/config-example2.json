@@ -1,0 +1,12 @@
+﻿{
+  "dataSource": {
+    "type": "SqlServer",
+    "config": {
+      "connectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=Clients;Integrated Security=SSPI;"
+    }
+  },
+  "dataGeneration": {
+    "locale": "en"
+  },
+  "tablesConfigPath": "example-configs\\config-example2-table-config.json"
+}

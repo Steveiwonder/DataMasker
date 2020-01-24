@@ -22,14 +22,7 @@ namespace DataMasker.Models
         /// </value>
         [JsonRequired]
         public DataSourceConfig DataSource { get; set; }
-
-        /// <summary>
-        /// Gets or sets the tables.
-        /// </summary>
-        /// <value>
-        /// The tables.
-        /// </value>
-        [JsonRequired]
+       
         public IList<TableConfig> Tables { get; set; }
 
         /// <summary>
@@ -39,17 +32,21 @@ namespace DataMasker.Models
         /// The data generation configuration.
         /// </value>
         public DataGenerationConfig DataGeneration { get; set; }
+        public string TablesConfigPath { get;  set; }
 
-        public static Config Load(
-            string filePath)
-        {
-            return LoadFromString(File.ReadAllText(filePath));
-        }
-
-        public static Config LoadFromString(string jsonContent)
+        public static Config Load(string filePath)  
         {
             Config config = new Config();
-            JsonConvert.PopulateObject(jsonContent, config);
+            JsonConvert.PopulateObject(File.ReadAllText(filePath), config);
+
+            if(config.Tables == null && string.IsNullOrEmpty(config.TablesConfigPath))
+            {
+                throw new Exception("Must supply table config, either via TableConfig or TableConfigPath");
+            }
+            if (!string.IsNullOrEmpty(config.TablesConfigPath))
+            {
+                config.Tables = JsonConvert.DeserializeObject<List<TableConfig>>(File.ReadAllText(config.TablesConfigPath));
+            }
             if (config.DataGeneration == null)
             {
                 config.DataGeneration = new DataGenerationConfig();
