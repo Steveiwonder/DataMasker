@@ -28,6 +28,6 @@ jobs:
     - name: Collect Artifact 
       uses: actions/upload-artifact@v2
       with:
-        name: build.2.0.${{github.run_number}}
+        name: DataMasker.2.0.${{github.run_number}}
         path: ./build/**.*
     
