@@ -19,15 +19,18 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.301
+    - name: Setup Environment Vars
+      run: |
+        echo '::set-env name=VERSION_NUMBER::2.0.${{github.run_number}}'
     - name: Install dependencies
       run: dotnet restore ./src/DataMasker/DataMasker.csproj
     - name: Build
       run: dotnet build ./src/DataMasker/DataMasker.csproj --configuration Release --no-restore
     - name: Publish      
-      run: dotnet pack ./src/DataMasker/DataMasker.csproj --configuration Release --no-restore -o ./build/ /p:Version=2.0.${{github.run_number}}
+      run: dotnet pack ./src/DataMasker/DataMasker.csproj --configuration Release --no-restore -o ./build/ /p:Version=${{env.VERSION_NUMBER}}
     - name: Collect Artifact 
       uses: actions/upload-artifact@v2
       with:
-        name: DataMasker.2.0.${{github.run_number}}
+        name: DataMasker.${{env.VERSION_NUMBER}}
         path: ./build/**.*
     
