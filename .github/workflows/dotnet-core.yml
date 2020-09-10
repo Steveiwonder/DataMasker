@@ -21,13 +21,15 @@ jobs:
         dotnet-version: 3.1.301
     - name: Setup Environment Vars
       run: |
-        echo '::set-env name=VERSION_NUMBER::2.0.${{github.run_number}}'
+        echo '::set-env name=VERSION_NUMBER::2.0.${{github.run_number}}-alpha'
     - name: Install dependencies
       run: dotnet restore ./src/DataMasker/DataMasker.csproj
     - name: Build
       run: dotnet build ./src/DataMasker/DataMasker.csproj --configuration Release --no-restore
     - name: Publish      
       run: dotnet pack ./src/DataMasker/DataMasker.csproj --configuration Release --no-restore -o ./build/ /p:Version=${{env.VERSION_NUMBER}}
+    - name: Push
+      run: dotnet nuget push ./build/DataMasker.${{env.VERSION_NUMBER}}.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
     - name: Collect Artifact 
       uses: actions/upload-artifact@v2
       with:
