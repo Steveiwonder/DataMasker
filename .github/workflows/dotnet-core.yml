@@ -26,8 +26,8 @@ jobs:
     - name: Publish      
       run: dotnet publish ./src/DataMasker/DataMasker.csproj --configuration Release --no-restore -o ./build/
     - name: Collect Artifact 
-    - uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v2
       with:
-        name: build.${{GITHUB_RUN_NUMBER}}
+        name: build.${{env.GITHUB_RUN_NUMBER}}
         path: ./build/**.*
     
