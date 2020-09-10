@@ -20,7 +20,7 @@ jobs:
       with:
         dotnet-version: 3.1.301
     - name: Install dependencies
-      run: dotnet restore
+      run: dotnet restore ./src/DataMasker/DataMasker.csproj
     - name: Build
       run: dotnet build ./src/DataMasker/DataMasker.csproj --configuration Release --no-restore 
 
