@@ -28,6 +28,6 @@ jobs:
     - name: Collect Artifact 
       uses: actions/upload-artifact@v2
       with:
-        name: build.$GITHUB_RUN_NUMBER
+        name: build.${{github.run_number}}
         path: ./build/**.*
     
