@@ -1,5 +1,4 @@
-![https://ci.appveyor.com/api/projects/status/g5smobkt3j6gom43/branch/master?svg=true](https://ci.appveyor.com/api/projects/status/g5smobkt3j6gom43/branch/master?svg=true)
-
+[![.NET Core](https://github.com/Steveiwonder/DataMasker/actions/workflows/dotnet-core.yml/badge.svg)](https://github.com/Steveiwonder/DataMasker/actions/workflows/dotnet-core.yml)
 # DataMasker
 A free data masking and/or anonymizer library for Sql Server written in .NET
 
@@ -502,8 +501,6 @@ The locale is used by [Bogus](https://github.com/bchavez/Bogus#locales) to gener
 Check out the Bogus page for a [list of supported locales](https://github.com/bchavez/Bogus#locales)
 
 ## DataMasker.Runner (CLI)
-
-The latest CLI build can be found [here](https://ci.appveyor.com/project/Steveiwonder/datamasker/build/artifacts)
 
 This is a CLI interface for the data masking tool. You might want to use this as part of your continuous integration if you backup/restore your live environments back to stage/dev after a release
 
