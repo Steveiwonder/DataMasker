@@ -15,8 +15,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
+
       with:
         dotnet-version: 3.1.301
     - name: Setup Environment Vars
