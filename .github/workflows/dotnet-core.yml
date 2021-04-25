@@ -16,14 +16,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-    - env:
-      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      uses: actions/setup-dotnet@v1      
       with:
         dotnet-version: 3.1.301
-    - name: Setup Environment Vars
-      run: |
-        echo '::set-env name=VERSION_NUMBER::2.0.${{github.run_number}}-alpha'
+      env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+        VERSION_NUMBER: 2.0.${{github.run_number}}-alpha
     - name: Install dependencies
       run: dotnet restore ./src/DataMasker/DataMasker.csproj
     - name: Build
