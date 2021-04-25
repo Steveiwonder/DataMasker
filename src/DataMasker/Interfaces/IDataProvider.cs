@@ -1,4 +1,5 @@
-﻿using Bogus.DataSets;
+﻿using System.Collections.Generic;
+using Bogus.DataSets;
 using DataMasker.Models;
 
 namespace DataMasker.Interfaces
@@ -8,7 +9,7 @@ namespace DataMasker.Interfaces
     bool CanProvide(DataType dataType);
     object GetValue(
         ColumnConfig columnConfig,
-        object existingValue,
+        IDictionary<string, object> obj,
         Name.Gender? gender);
   }
 }

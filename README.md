@@ -86,6 +86,14 @@ Example Config
           "type": "PhoneNumber",
           "retainNullValues": false,
           "stringFormatPattern": "+447#########"
+        },
+        {
+          "name": "CompanyName",
+          "type": "Sql",
+          "sqlValue": {
+            "query":"SELECT Name FROM SampleCompanyNames WHERE UserId = @UserId",
+            "valueHandling": "Null"
+          }
         }
       ]
     }
@@ -149,7 +157,18 @@ If both `tables` and `tablesConfigPath` is supplied then `tablesConfigPath` wins
 | useLocalValueMappings | true/false |
 | useGlobalValueMappings | true/false |
 | unique | true/false - when true it will attempt to generate a unique value for this column|
+| sqlValue | Used when type is set to sql
 
+### Sql Value Configuration
+
+When using data type Sql this allows you to get values from other tables within the same database. The configuration object is made up of the following properties
+
+| Property Name | Values |
+| ------------- | ------ |
+| query | The query to use for the lookup, the current row will be passed into the query as parameters for use, see the example config above that uses @UserId |
+| valueHandling | "Null" or "KeepValue". If the query executes and no data is returned, this tells the masker what to do, null  will set the value to Null while KeepValue will keep the existing value on that row |
+
+## Data types
 ##### None
 To use None you must specify either `valueMappings` or `useValue`, no data will be generated for this type. If you specify only `valueMappings` and the target value is not found, an error will be thrown.
 ```json
@@ -344,6 +363,19 @@ Check out the [Bogus API](https://github.com/bchavez/Bogus#bogus-api-support) fo
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false",
   "stringFormatPattern": "+1 ########-#-###-#"
+}
+```
+
+##### Sql
+The current row is passed in as parameters and can be accessed using `@ColumnName`
+```json
+{
+  "name":"CompanyName",
+  "type": "Sql",
+  "sqlValue": {
+    "query":"SELECT Name FROM SampleCompanyNames WHERE UserId = @UserId",
+    "valueHandling": "Null/KeepValue"
+  }
 }
 ```
 

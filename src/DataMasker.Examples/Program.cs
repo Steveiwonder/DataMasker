@@ -18,7 +18,7 @@ namespace DataMasker.Examples
     private static void Main(
         string[] args)
     {
-      Example1();
+      RunExample();
     }
 
     private static Config LoadConfig(
@@ -27,13 +27,14 @@ namespace DataMasker.Examples
       return Config.Load($"example-configs\\config-example{example}.json");
     }
 
-    public static void Example1()
+    public static void RunExample()
     {
-      Config config = LoadConfig(1);
+      Config config = LoadConfig(3);
 
 
       var dataProviders = new List<IDataProvider>();
       dataProviders.Add(new BogusDataProvider(config.DataGeneration));
+      dataProviders.Add(new SqlDataProvider(new System.Data.SqlClient.SqlConnection(config.DataSource.Config.connectionString.ToString())));
       //create a data masker
       IDataMasker dataMasker = new DataMasker(dataProviders);
 

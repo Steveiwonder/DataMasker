@@ -1,0 +1,32 @@
+﻿{
+  "dataSource": {
+    "type": "SqlServer",
+    "config": {
+      "connectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=Clients;Integrated Security=SSPI;"
+    }
+  },
+  "dataGeneration": {
+    "locale": "en"
+  },
+  "tables": [    
+    {
+      "name": "Users",
+      "primaryKeyColumn": "UserId",
+      "columns": [
+        {
+          "name": "FirstName",
+          "type": "Sql",
+          "sqlValue": {
+            "query":"SELECT FirstName FROM SampleData WHERE UserId = @UserId",
+            "valueHandling": "Null"
+          }
+        },
+        {
+          "name": "LastName",
+          "type": "LastName"
+          
+        }
+             ]
+    }
+  ]
+}

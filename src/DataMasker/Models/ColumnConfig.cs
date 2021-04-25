@@ -158,7 +158,7 @@ namespace DataMasker.Models
     /// <summary>
     /// Use in conjunction with <see cref="DataType.Sql" />
     /// </summary>
-    public SqlValueConfig SqlValueConfig { get; set; }
+    public SqlValueConfig SqlValue { get; set; }
 
 
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]

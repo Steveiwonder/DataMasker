@@ -48,8 +48,8 @@ namespace DataMasker
         IDictionary<string, object> obj,
         TableConfig tableConfig)
     {
-      obj = MaskNormal(obj, tableConfig, tableConfig.Columns.Where(x => !x.Ignore && x.Type != DataType.Computed));
-      obj = MaskComputed(obj, tableConfig, tableConfig.Columns.Where(x => !x.Ignore && x.Type == DataType.Computed));
+      obj = MaskNormal(obj, tableConfig, tableConfig.Columns.Where(x => !x.Ignore && x.Type != DataType.Computed && x.Type != DataType.Sql));
+      obj = MaskComputed(obj, tableConfig, tableConfig.Columns.Where(x => !x.Ignore && x.Type == DataType.Computed && x.Type != DataType.Sql));
       obj = MaskSql(obj, tableConfig, tableConfig.Columns.Where(x => !x.Ignore && x.Type == DataType.Sql));
       return obj;
     }
@@ -71,12 +71,12 @@ namespace DataMasker
 
         if (columnConfig.Unique)
         {
-          existingValue = GetUniqueValue(tableConfig.Name, columnConfig, existingValue, gender);
+          existingValue = GetUniqueValue(tableConfig.Name, columnConfig, obj, gender);
         }
         else
         {
           IDataProvider dataProvider = this.GetDataProvider(columnConfig.Type);
-          existingValue = dataProvider.GetValue(columnConfig, existingValue, gender);
+          existingValue = dataProvider.GetValue(columnConfig, obj, gender);
         }
         //replace the original value
         obj[columnConfig.Name] = existingValue;
@@ -119,15 +119,22 @@ namespace DataMasker
               IDictionary<string, object> obj,
               TableConfig tableConfig, IEnumerable<ColumnConfig> columnConfigs)
     {
+
+      foreach (var columnConfig in columnConfigs)
+      {
+        IDataProvider dataProvider = this.GetDataProvider(DataType.Sql);
+        obj[columnConfig.Name] = dataProvider.GetValue(columnConfig, obj, null);
+      }
       return obj;
     }
 
 
     private object GetUniqueValue(string tableName,
         ColumnConfig columnConfig,
-        object existingValue,
+        IDictionary<string, object> obj,
         Name.Gender? gender)
     {
+      object existingValue = obj[columnConfig.Name];
       //create a unique key
       string uniqueCacheKey = $"{tableName}.{columnConfig.Name}";
 
@@ -143,7 +150,7 @@ namespace DataMasker
       do
       {
         IDataProvider dataProvider = this.GetDataProvider(columnConfig.Type);
-        existingValue = dataProvider.GetValue(columnConfig, existingValue, gender);
+        existingValue = dataProvider.GetValue(columnConfig, obj, gender);
         totalIterations++;
         if (totalIterations >= MAX_UNIQUE_VALUE_ITERATIONS)
         {

@@ -1,7 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
@@ -9,5 +10,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../DataMasker/DataMasker.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+  <None Update="example-configs\**" CopyToOutputDirectory="Always"/>
   </ItemGroup>
 </Project>

@@ -12,7 +12,10 @@
                 "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile",
-        
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "label": "Build Examples",
@@ -24,8 +27,7 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
-            "problemMatcher": "$msCompile",
-            
+            "problemMatcher": "$msCompile"
         },
         {
             "label": "Build Runner",
@@ -40,29 +42,16 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "publish",
+            "label": "Launch Examples",
             "command": "dotnet",
-            "type": "process",
+            "type": "process",            
             "args": [
-                "publish",
-                "${workspaceFolder}/src/DataMasker/DataMasker.csproj",
+                "run",
+                "${workspaceFolder}/src/DataMasker.Examples/DataMasker.Examples.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile"
         },
-        {
-            "label": "watch",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "watch",
-                "run",
-                "${workspaceFolder}/src/DataMasker/DataMasker.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
-            ],
-            "problemMatcher": "$msCompile"
-        }
     ]
 }

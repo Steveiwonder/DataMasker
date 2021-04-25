@@ -67,9 +67,10 @@ namespace DataMasker
     /// <returns></returns>
     public object GetValue(
         ColumnConfig columnConfig,
-        object existingValue,
+        IDictionary<string, object> obj,
         Name.Gender? gender)
     {
+      object existingValue = obj[columnConfig.Name];
       if (columnConfig.ValueMappings == null)
       {
         columnConfig.ValueMappings = new Dictionary<object, object>();

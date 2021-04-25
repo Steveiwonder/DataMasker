@@ -4,12 +4,16 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
-
-     {
-         "type": "clr",
-         "program": "${workspaceFolder}/bin/Debug/<insert-target-framework-here>/<insert-project-name-here>.dll"
-     }
-
+        {
+            "name": "Launch Examples",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build Examples",
+            "program": "${workspaceFolder}/src/DataMasker.Examples/bin/Debug/netcoreapp3.1/DataMasker.Examples.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/DataMasker.Examples",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        }
     ]
 }
