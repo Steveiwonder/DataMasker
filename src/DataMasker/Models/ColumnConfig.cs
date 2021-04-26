@@ -92,7 +92,7 @@ namespace DataMasker.Models
     public string StringFormatPattern { get; set; }
 
     /// <summary>
-    /// When see, this value will be used for all rows
+    /// When set, this value will be used for all rows
     /// </summary>
     /// <value>
     /// The use value.
@@ -154,6 +154,11 @@ namespace DataMasker.Models
     [DefaultValue(false)]
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
     public bool Unique { get; set; }
+
+    /// <summary>
+    /// Use in conjunction with <see cref="DataType.Sql" />
+    /// </summary>
+    public SqlValueConfig SqlValue { get; set; }
 
 
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]

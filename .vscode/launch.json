@@ -5,16 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": "Launch Examples",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/bin/Debug/<target-framework>/<project-name.dll>",
+            "preLaunchTask": "Build Examples",
+            "program": "${workspaceFolder}/src/DataMasker.Examples/bin/Debug/netcoreapp3.1/DataMasker.Examples.exe",
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/src/DataMasker.Examples",
             "stopAtEntry": false,
             "console": "internalConsole"
         }
-
     ]
 }

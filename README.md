@@ -1,5 +1,4 @@
-![https://ci.appveyor.com/api/projects/status/g5smobkt3j6gom43/branch/master?svg=true](https://ci.appveyor.com/api/projects/status/g5smobkt3j6gom43/branch/master?svg=true)
-
+[![.NET Core](https://github.com/Steveiwonder/DataMasker/actions/workflows/dotnet-core.yml/badge.svg)](https://github.com/Steveiwonder/DataMasker/actions/workflows/dotnet-core.yml)
 # DataMasker
 A free data masking and/or anonymizer library for Sql Server written in .NET
 
@@ -86,6 +85,14 @@ Example Config
           "type": "PhoneNumber",
           "retainNullValues": false,
           "stringFormatPattern": "+447#########"
+        },
+        {
+          "name": "CompanyName",
+          "type": "Sql",
+          "sqlValue": {
+            "query":"SELECT Name FROM SampleCompanyNames WHERE UserId = @UserId",
+            "valueHandling": "Null"
+          }
         }
       ]
     }
@@ -149,7 +156,18 @@ If both `tables` and `tablesConfigPath` is supplied then `tablesConfigPath` wins
 | useLocalValueMappings | true/false |
 | useGlobalValueMappings | true/false |
 | unique | true/false - when true it will attempt to generate a unique value for this column|
+| sqlValue | Used when type is set to sql
 
+### Sql Value Configuration
+
+When using data type Sql this allows you to get values from other tables within the same database. The configuration object is made up of the following properties
+
+| Property Name | Values |
+| ------------- | ------ |
+| query | The query to use for the lookup, the current row will be passed into the query as parameters for use, see the example config above that uses @UserId |
+| valueHandling | "Null" or "KeepValue". If the query executes and no data is returned, this tells the masker what to do, null  will set the value to Null while KeepValue will keep the existing value on that row |
+
+## Data types
 ##### None
 To use None you must specify either `valueMappings` or `useValue`, no data will be generated for this type. If you specify only `valueMappings` and the target value is not found, an error will be thrown.
 ```json
@@ -347,6 +365,19 @@ Check out the [Bogus API](https://github.com/bchavez/Bogus#bogus-api-support) fo
 }
 ```
 
+##### Sql
+The current row is passed in as parameters and can be accessed using `@ColumnName`
+```json
+{
+  "name":"CompanyName",
+  "type": "Sql",
+  "sqlValue": {
+    "query":"SELECT Name FROM SampleCompanyNames WHERE UserId = @UserId",
+    "valueHandling": "Null/KeepValue"
+  }
+}
+```
+
 `name` & `type` are required everything else is optional unless specified
 
 Most data can be generated perfectly fine just by using the `Bogus` or `StringFormat` data types.
@@ -434,7 +465,7 @@ There is some additional configuration required when using  `SqlServer`, on the 
 Dry run is supported. A transaction is created, the update statement is executed and then the transaction is rolled back.
 
 ## Gender
-To ensure the new data is more accurate and believable you may want to take gender into consideration when generating certain data types such as names. This can be achieved with a small about of additional config. If no gender is specified then non gender specific names are generated.
+To ensure the new data is more accurate you may want to take gender into consideration when generating certain data types such as names. This can be achieved with a small amount of additional configuration. If no gender is specified then non gender specific names are generated.
 
 You must define the gender column and then tell your target column to use this when generating data.
 
@@ -470,8 +501,6 @@ The locale is used by [Bogus](https://github.com/bchavez/Bogus#locales) to gener
 Check out the Bogus page for a [list of supported locales](https://github.com/bchavez/Bogus#locales)
 
 ## DataMasker.Runner (CLI)
-
-The latest CLI build can be found [here](https://ci.appveyor.com/project/Steveiwonder/datamasker/build/artifacts)
 
 This is a CLI interface for the data masking tool. You might want to use this as part of your continuous integration if you backup/restore your live environments back to stage/dev after a release
 
