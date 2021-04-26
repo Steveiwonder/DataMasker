@@ -1,8 +1,7 @@
 name: .NET Core
 
 on:
-  workflow_dispatch:
-  
+  workflow_dispatch:  
   push:
     branches: [ master ]
   pull_request:
@@ -11,7 +10,7 @@ on:
 jobs:
   build:
     env:
-      VERSION_NUMBER: 2.0.${{github.run_number}}-alpha
+      VERSION_NUMBER: 2.0.${{github.run_number}}
     runs-on: ubuntu-latest
 
     steps:
