@@ -465,7 +465,7 @@ There is some additional configuration required when using  `SqlServer`, on the 
 Dry run is supported. A transaction is created, the update statement is executed and then the transaction is rolled back.
 
 ## Gender
-To ensure the new data is more accurate and believable you may want to take gender into consideration when generating certain data types such as names. This can be achieved with a small about of additional config. If no gender is specified then non gender specific names are generated.
+To ensure the new data is more accurate you may want to take gender into consideration when generating certain data types such as names. This can be achieved with a small amount of additional configuration. If no gender is specified then non gender specific names are generated.
 
 You must define the gender column and then tell your target column to use this when generating data.
 
