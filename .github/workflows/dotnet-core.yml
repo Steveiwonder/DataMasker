@@ -21,15 +21,26 @@ jobs:
         dotnet-version: 3.1.301
     - name: Install dependencies
       run: dotnet restore ./src/DataMasker/DataMasker.csproj
-    - name: Build
+    - name: Build Library
       run: dotnet build ./src/DataMasker/DataMasker.csproj --configuration Release --no-restore
-    - name: Publish      
+    - name: Publish Library
       run: dotnet pack ./src/DataMasker/DataMasker.csproj --configuration Release --no-restore -o ./build/ /p:Version=${{env.VERSION_NUMBER}}
-    - name: Push
+    - name: Push Nuget
       run: dotnet nuget push ./build/DataMasker.${{env.VERSION_NUMBER}}.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
     - name: Collect Artifact 
       uses: actions/upload-artifact@v2
       with:
         name: DataMasker.${{env.VERSION_NUMBER}}
         path: ./build/DataMasker.${{env.VERSION_NUMBER}}.nupkg
+    - name: Build CLI
+      run: dotnet publish ./src/DataMasker.Runner --configuraion Release
+    - name: action-zip
+      uses: montudor/action-zip@v1.0.0
+      with:
+        args: zip -qq -r DataMasker.Runner.zip ./src/DataMasker.Runner/bin/Release/publish/
+    - name: Create Release (DataMasker.Runner)    
+      with:
+        artifacts: "DataMasker.Runner.zip"
+        bodyFile: "ReadMe.md"
+        token: ${{ secrets.GITHUB_TOKEN }}
     
