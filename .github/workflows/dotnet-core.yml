@@ -10,12 +10,12 @@ on:
 jobs:
   build:
     env:
-      VERSION_NUMBER: 2.0.${{github.run_number}}
+      VERSION_NUMBER: 2.0.${{github.run_number}}-alpha
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Setup .NET Core
+    - name: Setup .NET Core    
       uses: actions/setup-dotnet@v1      
       with:
         dotnet-version: 3.1.301
@@ -26,6 +26,7 @@ jobs:
     - name: Publish Library
       run: dotnet pack ./src/DataMasker/DataMasker.csproj --configuration Release --no-restore -o ./build/ /p:Version=${{env.VERSION_NUMBER}}
     - name: Push Nuget
+       
       run: dotnet nuget push ./build/DataMasker.${{env.VERSION_NUMBER}}.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
     - name: Collect Artifact 
       uses: actions/upload-artifact@v2
