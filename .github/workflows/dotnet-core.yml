@@ -38,7 +38,7 @@ jobs:
     - name: action-zip
       uses: montudor/action-zip@v1.0.0
       with:
-        args: zip -qq -r DataMasker.Runner.zip ./src/DataMasker.Runner/bin/Release/publish/
+        args: zip -qq -r DataMasker.Runner.zip ./src/DataMasker.Runner/bin/Release/netcoreapp3.1/publish/
     - name: Create Release (DataMasker.Runner)
       uses: ncipollo/release-action@v1.8.4
       with:
