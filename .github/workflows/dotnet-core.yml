@@ -34,7 +34,7 @@ jobs:
         name: DataMasker.${{env.VERSION_NUMBER}}
         path: ./build/DataMasker.${{env.VERSION_NUMBER}}.nupkg
     - name: Build CLI
-      run: dotnet publish ./src/DataMasker.Runner --configuraion Release
+      run: dotnet publish ./src/DataMasker.Runner --configuration Release
     - name: action-zip
       uses: montudor/action-zip@v1.0.0
       with:
