@@ -502,6 +502,7 @@ Check out the Bogus page for a [list of supported locales](https://github.com/bc
 
 ## DataMasker.Runner (CLI)
 
+The latest vwesion can be found a thttps://github.com/Steveiwonder/DataMasker/releases
 This is a CLI interface for the data masking tool. You might want to use this as part of your continuous integration if you backup/restore your live environments back to stage/dev after a release
 
 The options are as follows
