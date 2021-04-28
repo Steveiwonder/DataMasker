@@ -48,7 +48,6 @@ jobs:
       uses: ncipollo/release-action@v1.8.4
       with:
         artifacts: "DataMasker.Runner.zip"
-        bodyFile: "ReadMe.md"
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{env.VERSION_NUMBER}}
     
