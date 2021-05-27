@@ -288,6 +288,7 @@ namespace DataMasker
       DataType.FullAddress,
       DataType.PhoneNumber,
       DataType.DateOfBirth,DataType.StringFormat,
+      DataType.Bogus,
       DataType.None,
       };
     public bool CanProvide(DataType dataType)
