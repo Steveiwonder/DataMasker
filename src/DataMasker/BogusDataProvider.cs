@@ -287,7 +287,8 @@ namespace DataMasker
       DataType.Lorem,
       DataType.FullAddress,
       DataType.PhoneNumber,
-      DataType.DateOfBirth,DataType.StringFormat,
+      DataType.DateOfBirth,
+      DataType.StringFormat,
       DataType.Bogus,
       DataType.None,
       };
