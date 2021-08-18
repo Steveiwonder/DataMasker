@@ -401,7 +401,7 @@ IDataMasker dataMasker = new DataMasker(new DataGenerator(config.DataGeneration)
 //and initialize your own instance
 IDataSource dataSource = DataSourceProvider.Provide(config.DataSource.Type, config.DataSource);
 
-//Enumerable all our tables and being masking the data
+//Enumerable all our tables and begin masking the data
 foreach (TableConfig tableConfig in config.Tables)
 {
     //load the data, this needs optimizing for large tables
@@ -469,7 +469,7 @@ To ensure the new data is more accurate you may want to take gender into conside
 
 You must define the gender column and then tell your target column to use this when generating data.
 
-Here we are saying, use the column "Gender" when generating data for "FirstName".We then include the "Gender" column but tell it to be ignored by the `IDataMasker`, it is purley there as a dependency to "FirstName"
+Here we are saying, use the column "Gender" when generating data for "FirstName". We then include the "Gender" column but tell it to be ignored by the `IDataMasker`, it is purley there as a dependency to "FirstName".
 
 ```json
 "columns": [
