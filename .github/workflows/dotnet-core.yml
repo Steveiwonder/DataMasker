@@ -19,7 +19,7 @@ jobs:
     - name: Build Library
       run: dotnet build ./src/DataMasker/DataMasker.csproj -c Release -r win-x64 --self-contained
     - name: Publish Library
-      run: dotnet pack ./src/DataMasker/DataMasker.csproj -c Release -o ./build/ /p:Version=${{env.VERSION_NUMBER}} -r win-x64 --self-contained
+      run: dotnet pack ./src/DataMasker/DataMasker.csproj -c Release -o ./build/ /p:Version=${{env.VERSION_NUMBER}}
     - name: Push Nuget
        
       run: dotnet nuget push ./build/DataMasker.${{env.VERSION_NUMBER}}.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
