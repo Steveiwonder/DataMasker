@@ -33,7 +33,7 @@ jobs:
     - name: action-zip
       uses: montudor/action-zip@v1.0.0
       with:
-        args: zip -r DataMasker.Runner.zip ./src/DataMasker.Runner/bin/Release/net7.0/publish/*
+        args: zip -r DataMasker.Runner.zip ./src/DataMasker.Runner/bin/Release/net7.0/*
     - name: Collect Artifact 
       uses: actions/upload-artifact@v2
       with:
