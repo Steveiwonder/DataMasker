@@ -29,11 +29,11 @@ jobs:
         name: DataMasker.${{env.VERSION_NUMBER}}
         path: ./build/DataMasker.${{env.VERSION_NUMBER}}.nupkg
     - name: Build CLI
-      run: dotnet publish ./src/DataMasker.Runner -c Release -r win-x64 --self-contained
+      run: dotnet publish ./src/DataMasker.Runner -c Release -o ./runner-build/ -r win-x64 --self-contained
     - name: action-zip
       uses: montudor/action-zip@v1.0.0
       with:
-        args: zip -r DataMasker.Runner.zip ./src/DataMasker.Runner/bin/Release/net7.0/*
+        args: zip -r DataMasker.Runner.zip ./runner-build/
     - name: Collect Artifact 
       uses: actions/upload-artifact@v2
       with:
