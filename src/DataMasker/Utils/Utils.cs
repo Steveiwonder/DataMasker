@@ -1,4 +1,6 @@
 ﻿using Bogus.DataSets;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DataMasker.Utils
 {
@@ -32,6 +34,31 @@ namespace DataMasker.Utils
             }
 
             return null;
+        }
+     
+        internal static IDictionary<string, object> MakeParamNamesSafe(IDictionary<string, object> param)
+        {
+            return param.ToDictionary(d => $"{MakeParamNameSafe(d.Key)}", d => d.Value);
+        }
+
+        internal static string MakeParamNameSafe(string paramName)
+        {
+            return paramName.Replace(" ", "_");
+        }
+
+        internal static string MakeColumnNameSafe(string paramName)
+        {
+            if (paramName[0] != '[')
+            {
+                paramName = $"[{paramName}";
+            }
+
+            if (paramName[paramName.Length-1] != ']')
+            {
+                paramName = $"{paramName}]";
+            }
+
+            return paramName;
         }
     }
 }

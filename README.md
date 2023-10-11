@@ -164,7 +164,7 @@ When using data type Sql this allows you to get values from other tables within 
 
 | Property Name | Values |
 | ------------- | ------ |
-| query | The query to use for the lookup, the current row will be passed into the query as parameters for use, see the example config above that uses @UserId |
+| query | The query to use for the lookup, the current row will be passed into the query as parameters for use, see the example config above that uses @UserId. Columns are passed back into the query as parameters, any columns with spaces in their name, will be replaced with '_' . *e.g. A column name "User Id" would become "User_Id"* |
 | valueHandling | "Null" or "KeepValue". If the query executes and no data is returned, this tells the masker what to do, null  will set the value to Null while KeepValue will keep the existing value on that row |
 
 ## Data types
