@@ -23,7 +23,9 @@ namespace DataMasker
 
     public object GetValue(ColumnConfig columnConfig, IDictionary<string, object> obj, Name.Gender? gender)
     {
-      DynamicParameters dynamicParameters = new DynamicParameters(obj);
+
+      IDictionary<string, object> safeObj = Utils.Utils.MakeParamNamesSafe(obj);
+      DynamicParameters dynamicParameters = new DynamicParameters(safeObj);
       object newValue = _connection.ExecuteScalar(columnConfig.SqlValue.Query, dynamicParameters);
       if (newValue == null && columnConfig.SqlValue.ValueHandling == NotFoundValueHandling.KeepValue)
       {

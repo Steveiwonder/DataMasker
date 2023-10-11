@@ -70,7 +70,7 @@ namespace DataMasker.DataSources
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                connection.Execute(BuildUpdateSql(tableConfig), row, null, commandType: CommandType.Text);
+                connection.Execute(BuildUpdateSql(tableConfig), Utils.Utils.MakeParamNamesSafe(row), null, commandType: CommandType.Text);
             }
         }
 
@@ -105,7 +105,8 @@ namespace DataMasker.DataSources
 
 
                     string sql = BuildUpdateSql(config);
-                    connection.Execute(sql, batch.Items, sqlTransaction, null, CommandType.Text);
+                    var safeDictionaries = batch.Items.Select(Utils.Utils.MakeParamNamesSafe);
+                    connection.Execute(sql, safeDictionaries, sqlTransaction, null, CommandType.Text);
 
                     if (_sourceConfig.DryRun)
                     {
@@ -147,7 +148,7 @@ namespace DataMasker.DataSources
             string sql = $"UPDATE [{tableConfig.Schema}].[{tableConfig.Name}] SET ";
 
             sql += tableConfig.Columns.GetUpdateColumns();
-            sql += $" WHERE [{tableConfig.PrimaryKeyColumn}] = @{tableConfig.PrimaryKeyColumn}";
+            sql += $" WHERE {Utils.Utils.MakeColumnNameSafe(tableConfig.PrimaryKeyColumn)} = @{Utils.Utils.MakeParamNameSafe(tableConfig.PrimaryKeyColumn)}";
             return sql;
         }
 

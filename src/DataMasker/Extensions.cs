@@ -19,7 +19,7 @@ namespace DataMasker
             this IList<ColumnConfig> columns,
             string primaryKeyColumn)
         {
-            IList<string> columnNames = new List<string>(columns.Select(x => $"[{x.Name}]"));
+            IList<string> columnNames = new List<string>(columns.Select(x => $"{Utils.Utils.MakeColumnNameSafe(x.Name)}"));
             columnNames.Insert(0, primaryKeyColumn);
             return string.Join(", ", columnNames);
         }
@@ -37,7 +37,7 @@ namespace DataMasker
             return string.Join(
                                ", ",
                                columns.Where(x => !x.Ignore)
-                                      .Select(x => $"[{x.Name}] = @{paramPrefix}{x.Name}"));
+                                      .Select(x => $"{Utils.Utils.MakeColumnNameSafe(x.Name)} = @{paramPrefix}{Utils.Utils.MakeParamNameSafe(x.Name)}"));
         }
     }
 }
