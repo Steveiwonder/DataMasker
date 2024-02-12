@@ -100,7 +100,7 @@ namespace DataMasker.Runner
         config.DataSource.DryRun = cliOptions.DryRun.Value;
       }
 
-      if (string.IsNullOrEmpty(cliOptions.Locale))
+      if (!string.IsNullOrEmpty(cliOptions.Locale))
       {
         config.DataGeneration.Locale = cliOptions.Locale;
       }
