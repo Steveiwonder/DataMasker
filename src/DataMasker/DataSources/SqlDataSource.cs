@@ -28,18 +28,8 @@ namespace DataMasker.DataSources
             DataSourceConfig sourceConfig)
         {
             _sourceConfig = sourceConfig;
-            if (sourceConfig.Config.connectionString != null && !string.IsNullOrWhiteSpace(sourceConfig.Config.connectionString.ToString()))
-            {
-                _connectionString = sourceConfig.Config.connectionString;
-            }
-            else
-            {
-                _connectionString =
-                    $"User ID={sourceConfig.Config.userName};Password={sourceConfig.Config.password};Data Source={sourceConfig.Config.server};Initial Catalog={sourceConfig.Config.name};Persist Security Info=False;";
-            }
-
+            _connectionString = sourceConfig.GetConnectionString();
         }
-
 
         /// <summary>
         /// Gets the data.

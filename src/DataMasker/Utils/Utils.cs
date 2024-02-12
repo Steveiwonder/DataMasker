@@ -1,4 +1,5 @@
 ﻿using Bogus.DataSets;
+using DataMasker.Models;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -59,6 +60,22 @@ namespace DataMasker.Utils
             }
 
             return paramName;
+        }
+
+        public static string GetConnectionString(this DataSourceConfig sourceConfig)
+        {
+            string connectionString;
+            if (sourceConfig.Config.connectionString != null && !string.IsNullOrWhiteSpace(sourceConfig.Config.connectionString.ToString()))
+            {
+                connectionString = sourceConfig.Config.connectionString;
+            }
+            else
+            {
+                connectionString =
+                    $"User ID={sourceConfig.Config.userName};Password={sourceConfig.Config.password};Data Source={sourceConfig.Config.server};Initial Catalog={sourceConfig.Config.name};Persist Security Info=False;";
+            }
+
+            return connectionString;
         }
     }
 }
