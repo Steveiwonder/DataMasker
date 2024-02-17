@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DataMasker.Interfaces;
 using DataMasker.Models;
+using DataMasker.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Schema.Generation;
@@ -32,9 +33,11 @@ namespace DataMasker.Examples
       Config config = LoadConfig(3);
 
 
-      var dataProviders = new List<IDataProvider>();
-      dataProviders.Add(new BogusDataProvider(config.DataGeneration));
-      dataProviders.Add(new SqlDataProvider(new System.Data.SqlClient.SqlConnection(config.DataSource.Config.connectionString.ToString())));
+      var dataProviders = new List<IDataProvider>
+      {
+          new BogusDataProvider(config.DataGeneration),
+          new SqlDataProvider(new System.Data.SqlClient.SqlConnection(config.DataSource.GetConnectionString()))
+      };
       //create a data masker
       IDataMasker dataMasker = new DataMasker(dataProviders);
 

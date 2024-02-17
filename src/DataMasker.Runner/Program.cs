@@ -9,6 +9,7 @@ using DataMasker.Interfaces;
 using DataMasker.Models;
 using Konsole;
 using Newtonsoft.Json;
+using DataMasker.Utils;
 
 namespace DataMasker.Runner
 {
@@ -128,9 +129,11 @@ namespace DataMasker.Runner
       WriteLine("Masking Data");
       UpdateProgress(ProgressType.Overall, 0, config.Tables.Count, "Overall Progress");
 
-      var dataProviders = new List<IDataProvider>();
-      dataProviders.Add(new BogusDataProvider(config.DataGeneration));
-      dataProviders.Add(new SqlDataProvider(new System.Data.SqlClient.SqlConnection(config.DataSource.Config.connectionString.ToString())));
+      var dataProviders = new List<IDataProvider>
+      {
+          new BogusDataProvider(config.DataGeneration),
+          new SqlDataProvider(new System.Data.SqlClient.SqlConnection(config.DataSource.GetConnectionString()))
+      };
 
       //create a data masker
       IDataMasker dataMasker = new DataMasker(dataProviders);
