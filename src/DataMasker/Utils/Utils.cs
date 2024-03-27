@@ -44,7 +44,7 @@ namespace DataMasker.Utils
 
         internal static string MakeParamNameSafe(string paramName)
         {
-            return paramName.Replace(" ", "_");
+            return paramName.Replace(" ", "_").Replace("-", "_");
         }
 
         internal static string MakeColumnNameSafe(string paramName)
