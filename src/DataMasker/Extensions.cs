@@ -20,7 +20,7 @@ namespace DataMasker
             string primaryKeyColumn)
         {
             IList<string> columnNames = new List<string>(columns.Select(x => $"{Utils.Utils.MakeColumnNameSafe(x.Name)}"));
-            columnNames.Insert(0, primaryKeyColumn);
+            columnNames.Insert(0, Utils.Utils.MakeColumnNameSafe(primaryKeyColumn));
             return string.Join(", ", columnNames);
         }
 
