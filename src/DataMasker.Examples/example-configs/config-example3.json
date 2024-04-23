@@ -2,31 +2,28 @@
   "dataSource": {
     "type": "SqlServer",
     "config": {
-      "connectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=Clients;Integrated Security=SSPI;"
+      "connectionString": "Data Source=localhost\\sql2019;Initial Catalog=demodb;Integrated Security=SSPI;"
     }
   },
   "dataGeneration": {
     "locale": "en"
   },
-  "tables": [    
+  "tables": [
     {
-      "name": "Users",
-      "primaryKeyColumn": "UserId",
+      "name": "test_table",
+      "schema": "dbo",
+      "primaryKeyColumn": "Id",
       "columns": [
         {
-          "name": "FirstName",
+          "name": "Search Name",
           "type": "Sql",
+          "retainNullValues": false,
           "sqlValue": {
-            "query":"SELECT FirstName FROM SampleData WHERE UserId = @UserId",
-            "valueHandling": "Null"
+            "query": "SELECT UPPER([Search Name]) FROM test_table WHERE Id = @Id",
+            "valueHandling": "KeepValue"
           }
-        },
-        {
-          "name": "LastName",
-          "type": "LastName"
-          
         }
-             ]
+      ]
     }
   ]
 }
