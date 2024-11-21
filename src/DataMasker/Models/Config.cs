@@ -25,6 +25,9 @@ namespace DataMasker.Models
        
         public IList<TableConfig> Tables { get; set; }
 
+
+        public IList<SqlStatementConfig> SqlStatements { get; set; }
+
         /// <summary>
         /// Gets or sets the generation configuration.
         /// </summary>
