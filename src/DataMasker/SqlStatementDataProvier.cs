@@ -9,17 +9,16 @@ using DataMasker.Models;
 
 namespace DataMasker
 {
-    public static class DataSourceProvider
+    public static class SqlStatementDataProvier
     {
-        public static IDataSource Provide(
+        public static ISqlStatementDataSource Provide(
             DataSourceType dataSourceType, DataSourceConfig dataSourceConfig = null)
         {
             switch (dataSourceType)
             {
-                case DataSourceType.InMemoryFake:
-                    return new InMemoryFakeDataSource();
+
                 case DataSourceType.SqlServer:
-                    return new SqlDataSource(dataSourceConfig);
+                    return new SqlStatementDataSource(dataSourceConfig);
 
             }
 

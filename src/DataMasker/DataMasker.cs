@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Bogus.DataSets;
+using DataMasker.DataSources;
 using DataMasker.Interfaces;
 using DataMasker.Models;
 
@@ -38,13 +39,16 @@ namespace DataMasker
       _dataProviders = dataProviders;
     }
 
-    /// <summary>
-    /// Masks the specified object with new data
-    /// </summary>
-    /// <param name="obj">The object to mask</param>
-    /// <param name="tableConfig">The table configuration.</param>
-    /// <returns></returns>
-    public IDictionary<string, object> Mask(
+
+  
+
+        /// <summary>
+        /// Masks the specified object with new data
+        /// </summary>
+        /// <param name="obj">The object to mask</param>
+        /// <param name="tableConfig">The table configuration.</param>
+        /// <returns></returns>
+        public IDictionary<string, object> Mask(
         IDictionary<string, object> obj,
         TableConfig tableConfig)
     {
