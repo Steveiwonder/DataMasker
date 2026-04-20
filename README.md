@@ -151,6 +151,7 @@ If both `tables` and `tablesConfigPath` is supplied then `tablesConfigPath` wins
 | max | Maxiumum value to use for the given data type |
 | stringFormatPattern | From [Bogus](https://github.com/bchavez/Bogus#replace), numbers #, letters ?, or * random number or letter |
 | useValue | A hardcoded value to use for every row |
+| useList | An array of values to randomly pick from for each row, e.g. `[10, 20, 56, 80]` |
 | retainNullValues | true/false |
 | retainEmptyStringValues | true/false - when true if the existing value is null or empty (whitespace) then it will use the original value |
 | useLocalValueMappings | true/false |
@@ -169,12 +170,12 @@ When using data type Sql this allows you to get values from other tables within 
 
 ## Data types
 ##### None
-To use None you must specify either `valueMappings` or `useValue`, no data will be generated for this type. If you specify only `valueMappings` and the target value is not found, an error will be thrown.
+To use None you must specify either `valueMappings`, `useValue`, or `useList`, no data will be generated for this type. If you specify only `valueMappings` and the target value is not found, an error will be thrown.
 ```json
 {
   "name": "Title",
   "type": "None",
-  "valueMappings": {    
+  "valueMappings": {
     "Mr": "Master"
   },
   "ignore":"true/false",
@@ -183,6 +184,28 @@ To use None you must specify either `valueMappings` or `useValue`, no data will 
   "retainEmptyStringValues": "true/false",
   "useLocalValueMappings": "true/false",
   "useGlobalValueMappings": "true/false"
+}
+```
+
+##### useList
+Randomly selects a value from a predefined list for each row. Works with any column type and supports integers, strings, or any JSON-compatible value.
+
+```json
+{
+  "name": "ProductTypeId",
+  "type": "None",
+  "useList": [10, 20, 56, 80],
+  "retainNullValues": false
+}
+```
+
+With strings:
+```json
+{
+  "name": "Status",
+  "type": "None",
+  "useList": ["Active", "Inactive", "Pending"],
+  "retainNullValues": false
 }
 ```
 

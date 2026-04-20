@@ -37,19 +37,30 @@ namespace DataMasker.Models
         public DataGenerationConfig DataGeneration { get; set; }
         public string TablesConfigPath { get;  set; }
 
-        public static Config Load(string filePath)  
+        public static Config Load(string filePath)
         {
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"Configuration file not found: '{filePath}'", filePath);
+            }
+
             Config config = new Config();
             JsonConvert.PopulateObject(File.ReadAllText(filePath), config);
 
-            if(config.Tables == null && string.IsNullOrEmpty(config.TablesConfigPath))
+            if (config.Tables == null && string.IsNullOrEmpty(config.TablesConfigPath))
             {
-                throw new Exception("Must supply table config, either via TableConfig or TableConfigPath");
+                throw new InvalidOperationException("Must supply table config, either via 'tables' or 'tablesConfigPath' in the configuration file.");
             }
+
             if (!string.IsNullOrEmpty(config.TablesConfigPath))
             {
+                if (!File.Exists(config.TablesConfigPath))
+                {
+                    throw new FileNotFoundException($"Tables configuration file not found: '{config.TablesConfigPath}'", config.TablesConfigPath);
+                }
                 config.Tables = JsonConvert.DeserializeObject<List<TableConfig>>(File.ReadAllText(config.TablesConfigPath));
             }
+
             if (config.DataGeneration == null)
             {
                 config.DataGeneration = new DataGenerationConfig();

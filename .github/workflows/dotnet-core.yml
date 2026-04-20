@@ -1,48 +1,57 @@
-name: .NET Core
+name: Release
 
 on: [workflow_dispatch]
 
 jobs:
-  build:
+  release:
     env:
       VERSION_NUMBER: 2.0.${{github.run_number}}
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Install dependencies
-      run: dotnet restore ./src/DataMasker/DataMasker.csproj
-    - name: Build Library
-      run: dotnet build ./src/DataMasker/DataMasker.csproj -c Release -r win-x64 --self-contained
-    - name: Publish Library
-      run: dotnet pack ./src/DataMasker/DataMasker.csproj -c Release -o ./build/ /p:Version=${{env.VERSION_NUMBER}}
-    - name: Push Nuget
-       
+
+    - name: Restore
+      run: dotnet restore ./src/DataMasker.sln
+
+    - name: Build
+      run: dotnet build ./src/DataMasker.sln -c Release --no-restore
+
+    - name: Test
+      run: dotnet test ./src/DataMasker.Tests/DataMasker.Tests.csproj -c Release --no-build --verbosity normal
+
+    - name: Pack Library
+      run: dotnet pack ./src/DataMasker/DataMasker.csproj -c Release --no-build -o ./build/ /p:Version=${{env.VERSION_NUMBER}}
+
+    - name: Push NuGet
       run: dotnet nuget push ./build/DataMasker.${{env.VERSION_NUMBER}}.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
-    - name: Collect Artifact 
-      uses: actions/upload-artifact@v2
+
+    - name: Collect Library Artifact
+      uses: actions/upload-artifact@v4
       with:
         name: DataMasker.${{env.VERSION_NUMBER}}
         path: ./build/DataMasker.${{env.VERSION_NUMBER}}.nupkg
+
     - name: Build CLI
       run: dotnet publish ./src/DataMasker.Runner -c Release -o ./runner-build/ -r win-x64 --self-contained
-    - name: action-zip
-      uses: montudor/action-zip@v1.0.0
-      with:
-        args: zip -r DataMasker.Runner.zip ./runner-build/
-    - name: Collect Artifact 
-      uses: actions/upload-artifact@v2
+
+    - name: Zip CLI
+      run: zip -r DataMasker.Runner.zip ./runner-build/
+
+    - name: Collect CLI Artifact
+      uses: actions/upload-artifact@v4
       with:
         name: DataMasker.Runner.${{env.VERSION_NUMBER}}
         path: ./DataMasker.Runner.zip
-    - name: Create Release (DataMasker.Runner)
-      uses: ncipollo/release-action@v1.8.4
+
+    - name: Create Release
+      uses: ncipollo/release-action@v1
       with:
         artifacts: "DataMasker.Runner.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{env.VERSION_NUMBER}}
-    
