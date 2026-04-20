@@ -13,165 +13,181 @@ using DataMasker.Utils;
 
 namespace DataMasker.Runner
 {
-  internal class Program
-  {
-    private static readonly Dictionary<ProgressType, ProgressbarUpdate> _progressBars = new Dictionary<ProgressType, ProgressbarUpdate>();
-
-    private static Options cliOptions;
-
-    private static void Main(
-        string[] args)
+    internal class Program
     {
+        private static readonly Dictionary<ProgressType, ProgressbarUpdate> _progressBars = new Dictionary<ProgressType, ProgressbarUpdate>();
 
-      Parser.Default.ParseArguments<Options>(args)
-            .WithParsed(
-                 options =>
-                 {
-                   cliOptions = options;
-                   try
-                   {
-                     RuntimeArgumentHandle();
-                   }
-                   catch (Exception ex)
-                   {
-                     WriteLine(ex.Message);
-                   }
-                 });
-    }
+        private static Options cliOptions;
 
-    private static void InitProgressBars()
-    {
-      if (cliOptions.NoOutput)
-      {
-        return;
-      }
+        private static void Main(
+            string[] args)
+        {
 
-      _progressBars.Add(
-          ProgressType.Overall,
-          new ProgressbarUpdate { ProgressBar = new ProgressBar(PbStyle.SingleLine, 0), LastMessage = "Overall Progress" });
+            Parser.Default.ParseArguments<Options>(args)
+                  .WithParsed(
+                       options =>
+                       {
+                           cliOptions = options;
+                           try
+                           {
+                               RuntimeArgumentHandle();
+                           }
+                           catch (Exception ex)
+                           {
+                               WriteLine(ex.Message);
+                           }
+                       });
+        }
 
-      _progressBars.Add(
-          ProgressType.Updating,
-          new ProgressbarUpdate { ProgressBar = new ProgressBar(PbStyle.SingleLine, 0), LastMessage = "Update Progress" });
+        private static void InitProgressBars()
+        {
+            if (cliOptions.NoOutput)
+            {
+                return;
+            }
 
-      _progressBars.Add(
-          ProgressType.Masking,
-          new ProgressbarUpdate { ProgressBar = new ProgressBar(PbStyle.SingleLine, 0), LastMessage = "Masking Progress" });
-    }
+            _progressBars.Add(
+                ProgressType.Overall,
+                new ProgressbarUpdate { ProgressBar = new ProgressBar(PbStyle.SingleLine, 0), LastMessage = "Overall Progress" });
 
-    private static void UpdateProgress(
-        ProgressType progressType,
-        int current,
-        int? max = null,
-        string message = null)
-    {
-      if (cliOptions.NoOutput)
-      {
-        return;
-      }
+            _progressBars.Add(
+                ProgressType.Updating,
+                new ProgressbarUpdate { ProgressBar = new ProgressBar(PbStyle.SingleLine, 0), LastMessage = "Update Progress" });
 
-      max = max ??
+            _progressBars.Add(
+                ProgressType.Masking,
+                new ProgressbarUpdate { ProgressBar = new ProgressBar(PbStyle.SingleLine, 0), LastMessage = "Masking Progress" });
+        }
+
+        private static void UpdateProgress(
+            ProgressType progressType,
+            int current,
+            int? max = null,
+            string message = null)
+        {
+            if (cliOptions.NoOutput)
+            {
+                return;
+            }
+
+            max = max ??
+                  _progressBars[progressType]
+                     .ProgressBar.Max;
+
             _progressBars[progressType]
-               .ProgressBar.Max;
+               .ProgressBar.Max = max.Value;
 
-      _progressBars[progressType]
-         .ProgressBar.Max = max.Value;
+            message = message ??
+                      _progressBars[progressType]
+                         .LastMessage;
 
-      message = message ??
-                _progressBars[progressType]
-                   .LastMessage;
+            _progressBars[progressType]
+               .ProgressBar.Refresh(current, message);
+        }
+        private static void RuntimeArgumentHandle()
+        {
+            if (cliOptions.PrintOptions)
+            {
+                WriteLine();
+                WriteLine(JsonConvert.SerializeObject(cliOptions, Formatting.Indented));
+                WriteLine();
+                return;
+            }
 
-      _progressBars[progressType]
-         .ProgressBar.Refresh(current, message);
-    }
-    private static void RuntimeArgumentHandle()
-    {
-      if (cliOptions.PrintOptions)
-      {
-        WriteLine();
-        WriteLine(JsonConvert.SerializeObject(cliOptions, Formatting.Indented));
-        WriteLine();
-        return;
-      }
+            InitProgressBars();
+            Config config = Config.Load(cliOptions.ConfigFile);
+            if (cliOptions.DryRun != null)
+            {
+                config.DataSource.DryRun = cliOptions.DryRun.Value;
+            }
 
-      InitProgressBars();
-      Config config = Config.Load(cliOptions.ConfigFile);
-      if (cliOptions.DryRun != null)
-      {
-        config.DataSource.DryRun = cliOptions.DryRun.Value;
-      }
+            if (!string.IsNullOrEmpty(cliOptions.Locale))
+            {
+                config.DataGeneration.Locale = cliOptions.Locale;
+            }
 
-      if (!string.IsNullOrEmpty(cliOptions.Locale))
-      {
-        config.DataGeneration.Locale = cliOptions.Locale;
-      }
+            if (cliOptions.UpdateBatchSize != null)
+            {
+                config.DataSource.UpdateBatchSize = cliOptions.UpdateBatchSize;
+            }
 
-      if (cliOptions.UpdateBatchSize != null)
-      {
-        config.DataSource.UpdateBatchSize = cliOptions.UpdateBatchSize;
-      }
+            Execute(config);
+        }
 
-      Execute(config);
-    }
+        private static void WriteLine(
+            string message = null)
+        {
+            if (!cliOptions.NoOutput)
+            {
+                Console.WriteLine(message);
+            }
+        }
 
-    private static void WriteLine(
-        string message = null)
-    {
-      if (!cliOptions.NoOutput)
-      {
-        Console.WriteLine(message);
-      }
-    }
+        private static void Execute(
+            Config config)
+        {
+            WriteLine("Masking Data");
+            UpdateProgress(ProgressType.Overall, 0, config.Tables.Count, "Overall Progress");
 
-    private static void Execute(
-        Config config)
-    {
-      WriteLine("Masking Data");
-      UpdateProgress(ProgressType.Overall, 0, config.Tables.Count, "Overall Progress");
-
-      var dataProviders = new List<IDataProvider>
+            var dataProviders = new List<IDataProvider>
       {
           new BogusDataProvider(config.DataGeneration),
           new SqlDataProvider(new System.Data.SqlClient.SqlConnection(config.DataSource.GetConnectionString()))
       };
 
-      //create a data masker
-      IDataMasker dataMasker = new DataMasker(dataProviders);
+            //create a data masker
+            IDataMasker dataMasker = new DataMasker(dataProviders);
 
-      //grab our dataSource from the config, note: you could just ignore the config.DataSource.Type
-      //and initialize your own instance
-      IDataSource dataSource = DataSourceProvider.Provide(config.DataSource.Type, config.DataSource);
+            //grab our dataSource from the config, note: you could just ignore the config.DataSource.Type
+            //and initialize your own instance
+            IDataSource dataSource = DataSourceProvider.Provide(config.DataSource.Type, config.DataSource);
 
-      for (int i = 0; i < config.Tables.Count; i++)
-      {
-        TableConfig tableConfig = config.Tables[i];
+            for (int i = 0; i < config.Tables.Count; i++)
+            {
+                TableConfig tableConfig = config.Tables[i];
 
 
-        var rowCount = dataSource.GetCount(tableConfig);
-        UpdateProgress(ProgressType.Masking, 0, (int)rowCount, "Masking Progress");
-        UpdateProgress(ProgressType.Updating, 0, (int)rowCount, "Update Progress");
+                var rowCount = dataSource.GetCount(tableConfig);
+                UpdateProgress(ProgressType.Masking, 0, (int)rowCount, "Masking Progress");
+                UpdateProgress(ProgressType.Updating, 0, (int)rowCount, "Update Progress");
 
-        IEnumerable<IDictionary<string, object>> rows = dataSource.GetData(tableConfig);
+                IEnumerable<IDictionary<string, object>> rows = dataSource.GetData(tableConfig);
 
-        int rowIndex = 0;
+                int rowIndex = 0;
 
-        var maskedRows = rows.Select(row =>
-        {
-          rowIndex++;
+                var maskedRows = rows.Select(row =>
+                {
+                    rowIndex++;
 
-          //update per row, or see below,
-          //dataSource.UpdateRow(row, tableConfig);
-          UpdateProgress(ProgressType.Masking, rowIndex);
+                    //update per row, or see below,
+                    //dataSource.UpdateRow(row, tableConfig);
+                    UpdateProgress(ProgressType.Masking, rowIndex);
 
-          return dataMasker.Mask(row, tableConfig);
-        });
+                    return dataMasker.Mask(row, tableConfig);
+                });
 
-        //update all rows
-        dataSource.UpdateRows(maskedRows, rowCount, tableConfig, totalUpdated => UpdateProgress(ProgressType.Updating, totalUpdated));
-        UpdateProgress(ProgressType.Overall, i + 1);
-      }
+                //update all rows
+                dataSource.UpdateRows(maskedRows, rowCount, tableConfig, totalUpdated => UpdateProgress(ProgressType.Updating, totalUpdated));
+                UpdateProgress(ProgressType.Overall, i + 1);
+            }
 
-      WriteLine("Done");
+            ISqlStatementDataSource sqlStatementDataSource = SqlStatementDataProvier.Provide(config.DataSource.Type, config.DataSource);
+
+            for (int i = 0; i < config.SqlStatements.Count; i++)
+            {
+                SqlStatementConfig sqlStatementConfig = config.SqlStatements[i];
+
+                //IDataMasker dataMasker = new DataMasker(dataProviders);
+
+                var rowCount = config.SqlStatements.Count();
+                UpdateProgress(ProgressType.Masking, 0, (int)rowCount, "Masking Progress");
+                UpdateProgress(ProgressType.Updating, 0, (int)rowCount, "Update Progress");
+                sqlStatementDataSource.Execute(sqlStatementConfig);
+
+
+            }
+
+            WriteLine("Done");
+        }
     }
-  }
 }
