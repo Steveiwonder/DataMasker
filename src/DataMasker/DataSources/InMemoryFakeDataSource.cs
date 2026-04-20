@@ -103,7 +103,7 @@ namespace DataMasker.DataSources
 
         public int GetCount(TableConfig config)
         {
-            return tableData.Count;
+            return tables.TryGetValue(config.Name, out var rows) ? rows.Count : 0;
         }
     }
 }

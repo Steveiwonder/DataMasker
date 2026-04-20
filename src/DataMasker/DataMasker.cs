@@ -27,6 +27,7 @@ namespace DataMasker
     /// <summary>
     /// A dictionary key'd by {tableName}.{columnName} containing a <see cref="HashSet{T}"/> of values which have been previously used for this table/column
     /// </summary>
+    private readonly ConcurrentDictionary<string, object> _uniqueValueLocks = new ConcurrentDictionary<string, object>();
     private readonly ConcurrentDictionary<string, HashSet<object>> _uniqueValues = new ConcurrentDictionary<string, HashSet<object>>();
     /// <summary>
     /// Initializes a new instance of the <see cref="DataMasker"/> class.
@@ -90,6 +91,11 @@ namespace DataMasker
     {
       foreach (ColumnConfig columnConfig in columnConfigs)
       {
+        if (columnConfig.SourceColumns == null || columnConfig.SourceColumns.Length == 0)
+        {
+          throw new InvalidOperationException($"Column '{columnConfig.Name}' is of type Computed but has no SourceColumns configured.");
+        }
+
         var separator = columnConfig.Separator ?? " ";
         StringBuilder colValue = new StringBuilder();
         bool first = true;
@@ -97,7 +103,7 @@ namespace DataMasker
         {
           if (!obj.ContainsKey(sourceColumn))
           {
-            throw new Exception($"Source column {sourceColumn} could not be found.");
+            throw new InvalidOperationException($"Source column '{sourceColumn}' could not be found in the current row.");
           }
 
           if (first)
@@ -138,35 +144,34 @@ namespace DataMasker
       //create a unique key
       string uniqueCacheKey = $"{tableName}.{columnConfig.Name}";
 
-      //if this table/column combination hasn't been seen before add an empty hash set
-      if (!_uniqueValues.ContainsKey(uniqueCacheKey))
-      {
-        _uniqueValues.AddOrUpdate(uniqueCacheKey, new HashSet<object>(), (a, b) => b);
-      }
-      //grab the hash set for this table/column 
-      HashSet<object> uniqueValues = _uniqueValues[uniqueCacheKey];
+      HashSet<object> uniqueValues = _uniqueValues.GetOrAdd(uniqueCacheKey, _ => new HashSet<object>());
+      object lockObj = _uniqueValueLocks.GetOrAdd(uniqueCacheKey, _ => new object());
 
-      int totalIterations = 0;
-      do
+      lock (lockObj)
       {
-        IDataProvider dataProvider = this.GetDataProvider(columnConfig.Type);
-        existingValue = dataProvider.GetValue(columnConfig, obj, gender);
-        totalIterations++;
-        if (totalIterations >= MAX_UNIQUE_VALUE_ITERATIONS)
+        int totalIterations = 0;
+        do
         {
-          throw new Exception($"Unable to generate unique value for {uniqueCacheKey}, attempt to resolve value {totalIterations} times");
+          IDataProvider dataProvider = this.GetDataProvider(columnConfig.Type);
+          existingValue = dataProvider.GetValue(columnConfig, obj, gender);
+          totalIterations++;
+          if (totalIterations >= MAX_UNIQUE_VALUE_ITERATIONS)
+          {
+            throw new InvalidOperationException($"Unable to generate unique value for {uniqueCacheKey}, attempted {totalIterations} times");
+          }
         }
-      }
-      while (uniqueValues.Contains(existingValue));
+        while (uniqueValues.Contains(existingValue));
 
-      uniqueValues.Add(existingValue);
+        uniqueValues.Add(existingValue);
+      }
       return existingValue;
     }
 
 
     private IDataProvider GetDataProvider(DataType dataType)
     {
-      return this._dataProviders.First(x => x.CanProvide(dataType));
+      return this._dataProviders.FirstOrDefault(x => x.CanProvide(dataType))
+          ?? throw new InvalidOperationException($"No data provider registered for data type '{dataType}'.");
     }
 
   }

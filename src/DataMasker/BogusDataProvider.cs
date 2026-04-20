@@ -81,6 +81,11 @@ namespace DataMasker
         return ConvertValue(columnConfig.Type, columnConfig.UseValue);
       }
 
+      if (columnConfig.UseList != null && columnConfig.UseList.Length > 0)
+      {
+        return _faker.PickRandom(columnConfig.UseList);
+      }
+
       if (columnConfig.RetainNullValues &&
           existingValue == null)
       {
@@ -279,7 +284,7 @@ namespace DataMasker
       throw new ArgumentOutOfRangeException(nameof(columnConfig.Type), columnConfig.Type, null);
     }
 
-    private DataType[] _supported = new[]{
+    private static readonly DataType[] _supported = new[]{
 
       DataType.FirstName,
       DataType.LastName,

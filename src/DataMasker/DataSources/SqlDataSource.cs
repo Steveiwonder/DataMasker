@@ -40,11 +40,10 @@ namespace DataMasker.DataSources
         public IEnumerable<IDictionary<string, object>> GetData(
             TableConfig tableConfig)
         {
-            SqlConnection connection = new SqlConnection(_connectionString);
-            {
-                connection.Open();
-                return (IEnumerable<IDictionary<string, object>>)connection.Query(BuildSelectSql(tableConfig), buffered: false);
-            }
+            using var connection = new SqlConnection(_connectionString);
+            connection.Open();
+            var rows = connection.Query(BuildSelectSql(tableConfig), buffered: true);
+            return rows.Cast<IDictionary<string, object>>();
         }
 
         /// <summary>

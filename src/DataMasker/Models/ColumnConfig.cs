@@ -166,5 +166,13 @@ namespace DataMasker.Models
 
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
     public string[] SourceColumns { get; set; }
+
+    /// <summary>
+    /// A list of values to randomly pick from when generating data for this column.
+    /// When set, a random value from this list will be chosen for each row.
+    /// </summary>
+    [DefaultValue(null)]
+    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+    public object[] UseList { get; set; }
   }
 }
