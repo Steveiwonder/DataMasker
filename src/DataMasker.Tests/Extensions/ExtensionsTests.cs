@@ -1,12 +1,11 @@
-using System.Collections.Generic;
 using DataMasker.Models;
 
-namespace DataMasker.Tests
+namespace DataMasker.Tests.Extensions
 {
     [TestClass]
     public class ExtensionsTests
     {
-        // ── GetSelectColumns ─────────────────────────────────────────────────
+        // ── GetSelectColumns ──────────────────────────────────────────────────
 
         [TestMethod]
         public void GetSelectColumns_AlwaysIncludesPrimaryKey()
@@ -62,7 +61,7 @@ namespace DataMasker.Tests
             Assert.AreEqual("[UserId]", sql.Trim());
         }
 
-        // ── GetUpdateColumns ─────────────────────────────────────────────────
+        // ── GetUpdateColumns ──────────────────────────────────────────────────
 
         [TestMethod]
         public void GetUpdateColumns_IncludesNonIgnoredColumns()
@@ -104,7 +103,6 @@ namespace DataMasker.Tests
 
             string sql = columns.GetUpdateColumns();
 
-            // Should contain something like: [FirstName] = @FirstName
             Assert.IsTrue(sql.Contains("@FirstName"), $"Expected @FirstName param in: {sql}");
         }
 
@@ -146,110 +144,6 @@ namespace DataMasker.Tests
             string sql = columns.GetUpdateColumns();
 
             Assert.AreEqual(string.Empty, sql.Trim());
-        }
-    }
-
-    [TestClass]
-    public class UtilsExtendedTests
-    {
-        [TestMethod]
-        public void MakeParamNameSafe_ReplacesSpacesWithUnderscores()
-        {
-            string result = Utils.Utils.MakeParamNameSafe("First Name");
-            Assert.AreEqual("First_Name", result);
-        }
-
-        [TestMethod]
-        public void MakeParamNameSafe_ReplacesHyphensWithUnderscores()
-        {
-            string result = Utils.Utils.MakeParamNameSafe("date-of-birth");
-            Assert.AreEqual("date_of_birth", result);
-        }
-
-        [TestMethod]
-        public void MakeParamNameSafe_NoSpecialChars_Unchanged()
-        {
-            string result = Utils.Utils.MakeParamNameSafe("FirstName");
-            Assert.AreEqual("FirstName", result);
-        }
-
-        [TestMethod]
-        public void MakeColumnNameSafe_AddsSquareBrackets()
-        {
-            string result = Utils.Utils.MakeColumnNameSafe("UserId");
-            Assert.AreEqual("[UserId]", result);
-        }
-
-        [TestMethod]
-        public void MakeColumnNameSafe_AlreadyBracketed_NoChange()
-        {
-            string result = Utils.Utils.MakeColumnNameSafe("[UserId]");
-            Assert.AreEqual("[UserId]", result);
-        }
-
-        [TestMethod]
-        public void MakeParamNamesSafe_ConvertsAllKeys()
-        {
-            var input = new Dictionary<string, object>
-            {
-                ["First Name"] = "Steve",
-                ["date-of-birth"] = "1990-01-01",
-                ["NormalKey"] = 42
-            };
-
-            var result = Utils.Utils.MakeParamNamesSafe(input);
-
-            Assert.IsTrue(result.ContainsKey("First_Name"),    "Expected 'First_Name'");
-            Assert.IsTrue(result.ContainsKey("date_of_birth"), "Expected 'date_of_birth'");
-            Assert.IsTrue(result.ContainsKey("NormalKey"),     "Expected 'NormalKey' unchanged");
-        }
-
-        [TestMethod]
-        public void MakeParamNamesSafe_PreservesValues()
-        {
-            var input = new Dictionary<string, object>
-            {
-                ["First Name"] = "Steve"
-            };
-
-            var result = Utils.Utils.MakeParamNamesSafe(input);
-
-            Assert.AreEqual("Steve", result["First_Name"]);
-        }
-    }
-
-    [TestClass]
-    public class DataSourceProviderTests
-    {
-        [TestMethod]
-        public void Provide_InMemoryFake_ReturnsInMemoryFakeDataSource()
-        {
-            var source = DataSourceProvider.Provide(DataSourceType.InMemoryFake);
-            Assert.IsInstanceOfType(source, typeof(DataSources.InMemoryFakeDataSource));
-        }
-
-        [TestMethod]
-        public void Provide_SqlServer_ReturnsSqlDataSource()
-        {
-            // Use JObject to mirror what Newtonsoft.Json produces when the config is loaded from JSON
-            var config = new Models.DataSourceConfig
-            {
-                Type   = DataSourceType.SqlServer,
-                Config = Newtonsoft.Json.Linq.JObject.Parse(@"{ ""connectionString"": ""Server=.;Database=test;"" }")
-            };
-            var source = DataSourceProvider.Provide(DataSourceType.SqlServer, config);
-            Assert.IsInstanceOfType(source, typeof(DataSources.SqlDataSource));
-        }
-
-        [TestMethod]
-        public void Provide_UnknownType_ThrowsArgumentOutOfRangeException()
-        {
-            try
-            {
-                DataSourceProvider.Provide((DataSourceType)999);
-                Assert.Fail("Expected ArgumentOutOfRangeException");
-            }
-            catch (ArgumentOutOfRangeException) { }
         }
     }
 }

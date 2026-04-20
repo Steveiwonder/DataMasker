@@ -1,7 +1,7 @@
 using Bogus.DataSets;
 using DataMasker.Interfaces;
 using DataMasker.Models;
-using System.Data.SqlClient;
+using System.Data;
 using Dapper;
 using System.Collections.Generic;
 
@@ -10,9 +10,9 @@ namespace DataMasker
 
   public class SqlDataProvider : IDataProvider
   {
-    private readonly SqlConnection _connection;
+    private readonly IDbConnection _connection;
 
-    public SqlDataProvider(SqlConnection connection)
+    public SqlDataProvider(IDbConnection connection)
     {
       _connection = connection;
     }

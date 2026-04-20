@@ -314,5 +314,164 @@ namespace DataMasker.Tests
             var result = provider.GetValue(Col("FirstName", DataType.FirstName), Row("FirstName", "Steve"), null);
             Assert.IsNotNull(result);
         }
+
+        // ── DataType.None edge cases ──────────────────────────────────────────
+
+        [TestMethod]
+        public void GetValue_NoneType_NoUseValueOrUseList_NonNullExistingValue_ThrowsArgumentOutOfRangeException()
+        {
+            // DataType.None is not handled in the private GetValue switch, so if execution
+            // reaches it (no UseValue, no UseList, existing value is non-null) it throws.
+            var col = new ColumnConfig { Name = "Status", Type = DataType.None };
+            try
+            {
+                Provider().GetValue(col, Row("Status", "active"), null);
+                Assert.Fail("Expected ArgumentOutOfRangeException for DataType.None with no UseValue/UseList");
+            }
+            catch (ArgumentOutOfRangeException) { }
+        }
+
+        [TestMethod]
+        public void GetValue_NoneType_NullExistingValue_RetainNullTrue_ReturnsNull()
+        {
+            // RetainNullValues short-circuits before the unhandled None switch branch
+            var col = new ColumnConfig { Name = "Status", Type = DataType.None, RetainNullValues = true };
+            var result = Provider().GetValue(col, Row("Status", null!), null);
+            Assert.IsNull(result);
+        }
+
+        // ── Pre-populated ValueMappings with UseLocalValueMappings ────────────
+
+        [TestMethod]
+        public void GetValue_PrePopulatedValueMappings_KnownKey_ReturnsMappedValue()
+        {
+            var col = new ColumnConfig
+            {
+                Name                 = "LastName",
+                Type                 = DataType.LastName,
+                UseLocalValueMappings = true,
+                ValueMappings        = new Dictionary<object, object> { { "Smith", "Jones" } }
+            };
+
+            // "Smith" is pre-seeded → should always return "Jones" without generating a new value
+            var result = Provider().GetValue(col, Row("LastName", "Smith"), null);
+            Assert.AreEqual("Jones", result,
+                "Pre-populated ValueMappings should be returned directly when the key is found");
+        }
+
+        [TestMethod]
+        public void GetValue_PrePopulatedValueMappings_UnknownKey_GeneratesAndStoresNewMapping()
+        {
+            var col = new ColumnConfig
+            {
+                Name                 = "LastName",
+                Type                 = DataType.LastName,
+                UseLocalValueMappings = true,
+                ValueMappings        = new Dictionary<object, object> { { "Smith", "Jones" } }
+            };
+            var provider = Provider();
+
+            // "Brown" is not pre-seeded → a new value is generated and stored
+            var firstCall  = provider.GetValue(col, Row("LastName", "Brown"), null);
+            var secondCall = provider.GetValue(col, Row("LastName", "Brown"), null);
+
+            Assert.IsNotNull(firstCall);
+            Assert.AreEqual(firstCall, secondCall,
+                "After the first call, the same input should always produce the same masked output");
+        }
+
+        [TestMethod]
+        public void GetValue_PrePopulatedValueMappings_PreSeededKeyNotAffectedByOtherInputs()
+        {
+            var col = new ColumnConfig
+            {
+                Name                 = "LastName",
+                Type                 = DataType.LastName,
+                UseLocalValueMappings = true,
+                ValueMappings        = new Dictionary<object, object> { { "Smith", "Jones" } }
+            };
+            var provider = Provider();
+
+            // Generate mapping for an unknown value first
+            provider.GetValue(col, Row("LastName", "Brown"), null);
+
+            // Pre-seeded "Smith" → "Jones" should still hold
+            var result = provider.GetValue(col, Row("LastName", "Smith"), null);
+            Assert.AreEqual("Jones", result,
+                "Pre-seeded mapping should not be overwritten by auto-generated mappings for other keys");
+        }
+
+        // ── Exception throw paths ────────────────────────────────────────────
+
+        [TestMethod]
+        public void GetValue_SqlType_ThrowsArgumentOutOfRangeException()
+        {
+            // DataType.Sql is not handled in the private GetValue switch
+            var col = new ColumnConfig { Name = "X", Type = DataType.Sql };
+            try
+            {
+                Provider().GetValue(col, Row("X", "existing"), null);
+                Assert.Fail("Expected ArgumentOutOfRangeException");
+            }
+            catch (ArgumentOutOfRangeException) { }
+        }
+
+        [TestMethod]
+        public void GetValue_UseValue_SqlType_ConvertValue_ThrowsArgumentOutOfRangeException()
+        {
+            // UseValue triggers ConvertValue, which does not handle DataType.Sql
+            var col = new ColumnConfig { Name = "X", Type = DataType.Sql, UseValue = "something" };
+            try
+            {
+                Provider().GetValue(col, Row("X", "existing"), null);
+                Assert.Fail("Expected ArgumentOutOfRangeException from ConvertValue");
+            }
+            catch (ArgumentOutOfRangeException) { }
+        }
+
+        [TestMethod]
+        public void GetValue_UseValue_ComputedType_ConvertValue_ThrowsArgumentOutOfRangeException()
+        {
+            // UseValue triggers ConvertValue, which does not handle DataType.Computed
+            var col = new ColumnConfig { Name = "X", Type = DataType.Computed, UseValue = "val" };
+            try
+            {
+                Provider().GetValue(col, Row("X", "existing"), null);
+                Assert.Fail("Expected ArgumentOutOfRangeException from ConvertValue");
+            }
+            catch (ArgumentOutOfRangeException) { }
+        }
+
+        [TestMethod]
+        public void GetValue_UseGlobalValueMappings_TwoDifferentInputs_BothRetainedSeparately()
+        {
+            var col = new ColumnConfig { Name = "LastName", Type = DataType.LastName, UseGlobalValueMappings = true };
+            var provider = Provider();
+
+            // First call creates _globalValueMappings["LastName"] dictionary
+            var mappedSmith = provider.GetValue(col, Row("LastName", "Smith"), null);
+            // Second call with different input goes into the ContainsKey=true branch
+            var mappedJones = provider.GetValue(col, Row("LastName", "Jones"), null);
+
+            // Subsequent calls should return the same mapped values
+            Assert.AreEqual(mappedSmith, provider.GetValue(col, Row("LastName", "Smith"), null));
+            Assert.AreEqual(mappedJones, provider.GetValue(col, Row("LastName", "Jones"), null));
+        }
+
+        // ── ConvertValue for DateOfBirth with UseValue ───────────────────────
+
+        [TestMethod]
+        public void GetValue_UseValue_DateOfBirth_ReturnsDateTime()
+        {
+            var col = new ColumnConfig
+            {
+                Name = "DOB",
+                Type = DataType.DateOfBirth,
+                UseValue = "2000-01-15"
+            };
+            var result = Provider().GetValue(col, Row("DOB", DateTime.Now), null);
+            Assert.IsInstanceOfType(result, typeof(DateTime));
+            Assert.AreEqual(new DateTime(2000, 1, 15), (DateTime)result);
+        }
     }
 }

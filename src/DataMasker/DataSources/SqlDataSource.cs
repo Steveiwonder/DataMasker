@@ -20,15 +20,25 @@ namespace DataMasker.DataSources
 
         private readonly string _connectionString;
 
+        private readonly Func<IDbConnection> _connectionFactory;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlDataSource"/> class.
         /// </summary>
         /// <param name="sourceConfig"></param>
         public SqlDataSource(
             DataSourceConfig sourceConfig)
+            : this(sourceConfig, null)
+        {
+        }
+
+        internal SqlDataSource(
+            DataSourceConfig sourceConfig,
+            Func<IDbConnection> connectionFactory)
         {
             _sourceConfig = sourceConfig;
             _connectionString = sourceConfig.GetConnectionString();
+            _connectionFactory = connectionFactory ?? (() => new SqlConnection(_connectionString));
         }
 
         /// <summary>
@@ -40,7 +50,7 @@ namespace DataMasker.DataSources
         public IEnumerable<IDictionary<string, object>> GetData(
             TableConfig tableConfig)
         {
-            using var connection = new SqlConnection(_connectionString);
+            using var connection = _connectionFactory();
             connection.Open();
             var rows = connection.Query(BuildSelectSql(tableConfig), buffered: true);
             return rows.Cast<IDictionary<string, object>>();
@@ -56,7 +66,7 @@ namespace DataMasker.DataSources
             IDictionary<string, object> row,
             TableConfig tableConfig)
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (IDbConnection connection = _connectionFactory())
             {
                 connection.Open();
                 connection.Execute(BuildUpdateSql(tableConfig), Utils.Utils.MakeParamNamesSafe(row), null, commandType: CommandType.Text);
@@ -85,12 +95,12 @@ namespace DataMasker.DataSources
                     enumerable) => enumerable.Count() < batchSize);
 
             int totalUpdated = 0;
-          using (SqlConnection connection = new SqlConnection(_connectionString))
+          using (IDbConnection connection = _connectionFactory())
             {
                 connection.Open();
                 foreach (Batch<IDictionary<string, object>> batch in batches)
                 {
-                    SqlTransaction sqlTransaction = connection.BeginTransaction();
+                    IDbTransaction sqlTransaction = connection.BeginTransaction();
 
 
                     string sql = BuildUpdateSql(config);
@@ -118,7 +128,7 @@ namespace DataMasker.DataSources
 
         public int GetCount(TableConfig config)
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            using (IDbConnection connection = _connectionFactory())
             {
                 connection.Open();
                 var count = connection.ExecuteScalar(BuildCountSql(config));
