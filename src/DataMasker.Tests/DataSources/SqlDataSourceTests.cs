@@ -175,7 +175,7 @@ namespace DataMasker.Tests.DataSources
         }
 
         [TestMethod]
-        public void UpdateRows_NullBatchSize_UsesRowCount()
+        public void UpdateRows_NullBatchSize_UsesDefaultBatchSize()
         {
             var source = new SqlDataSource(MakeConfig(batchSize: null), Factory());
             var rows = new List<IDictionary<string, object>>

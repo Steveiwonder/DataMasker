@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 namespace DataMasker.Models
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public class Config
     {
@@ -22,7 +22,7 @@ namespace DataMasker.Models
         /// </value>
         [JsonRequired]
         public DataSourceConfig DataSource { get; set; }
-       
+
         public IList<TableConfig> Tables { get; set; }
 
 
@@ -35,6 +35,12 @@ namespace DataMasker.Models
         /// The data generation configuration.
         /// </value>
         public DataGenerationConfig DataGeneration { get; set; }
+
+        /// <summary>
+        /// Path to a separate json file containing the table configuration. A relative path is
+        /// resolved against the current directory first and then against the directory of the
+        /// main configuration file.
+        /// </summary>
         public string TablesConfigPath { get;  set; }
 
         public static Config Load(string filePath)
@@ -54,11 +60,12 @@ namespace DataMasker.Models
 
             if (!string.IsNullOrEmpty(config.TablesConfigPath))
             {
-                if (!File.Exists(config.TablesConfigPath))
+                string tablesConfigPath = ResolveTablesConfigPath(filePath, config.TablesConfigPath);
+                if (!File.Exists(tablesConfigPath))
                 {
                     throw new FileNotFoundException($"Tables configuration file not found: '{config.TablesConfigPath}'", config.TablesConfigPath);
                 }
-                config.Tables = JsonConvert.DeserializeObject<List<TableConfig>>(File.ReadAllText(config.TablesConfigPath));
+                config.Tables = JsonConvert.DeserializeObject<List<TableConfig>>(File.ReadAllText(tablesConfigPath));
             }
 
             if (config.DataGeneration == null)
@@ -72,6 +79,25 @@ namespace DataMasker.Models
                 config.SqlStatements = new List<SqlStatementConfig>();
             }
             return config;
+        }
+
+        private static string ResolveTablesConfigPath(
+            string configFilePath,
+            string tablesConfigPath)
+        {
+            if (Path.IsPathRooted(tablesConfigPath) || File.Exists(tablesConfigPath))
+            {
+                return tablesConfigPath;
+            }
+
+            string configDirectory = Path.GetDirectoryName(Path.GetFullPath(configFilePath));
+            if (string.IsNullOrEmpty(configDirectory))
+            {
+                return tablesConfigPath;
+            }
+
+            string relativeToConfig = Path.Combine(configDirectory, tablesConfigPath);
+            return File.Exists(relativeToConfig) ? relativeToConfig : tablesConfigPath;
         }
     }
 }
