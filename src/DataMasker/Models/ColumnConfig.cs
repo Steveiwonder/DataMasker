@@ -174,5 +174,16 @@ namespace DataMasker.Models
     [DefaultValue(null)]
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
     public object[] UseList { get; set; }
+
+    /// <summary>
+    /// Returns a copy of this configuration with value mappings switched off.
+    /// </summary>
+    internal ColumnConfig WithoutValueMappings()
+    {
+      ColumnConfig copy = (ColumnConfig)MemberwiseClone();
+      copy.UseLocalValueMappings = false;
+      copy.UseGlobalValueMappings = false;
+      return copy;
+    }
   }
 }

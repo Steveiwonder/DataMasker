@@ -17,6 +17,10 @@ Version 3.0 is a breaking release. Before upgrading, note the following:
 - **.NET 10 is required.** The library and the CLI now target `net10.0`. .NET 8 is no longer supported.
 - **`Microsoft.Data.SqlClient` replaces `System.Data.SqlClient`.** If you construct a `SqlDataProvider` yourself, pass a `Microsoft.Data.SqlClient.SqlConnection`. `Microsoft.Data.SqlClient` encrypts connections by default (`Encrypt=True`), so a server without a trusted certificate will now fail to connect unless your connection string includes `TrustServerCertificate=True` or `Encrypt=False`. The old client did not enforce this.
 - **Releases are automatic.** Every push to `master` publishes a new `3.0.x` version to NuGet and GitHub Releases.
+- **`IDataSource` and `IDataMasker` have grown.** `IDataSource` gains `GetDistinctValues(tableConfig, columnName)` and `IDataMasker` gains `SeedUniqueValues(...)`. If you implement either interface yourself you will need to add these. If you use the built-in `DataMasker` directly, call `dataMasker.SeedUniqueValues(dataSource, tableConfig)` before masking a table so that `unique` columns never collide with values already in the table.
+- **Rows are read in pages and updated in bulk.** `SqlDataSource.GetData` streams the table in primary key order, one batch at a time, instead of loading it all into memory. Updates against SQL Server are bulk copied into a temp table and applied with a single `UPDATE ... JOIN` per batch. The primary key must be a single sortable column (it already had to be for updates).
+- **`updateBatchSize` defaults to 1000** instead of the whole table, so a large table is no longer one enormous transaction. A new `commandTimeout` setting (seconds, default 600, 0 for no limit) applies to every query, including `sqlStatements`.
+- **The CLI returns a non-zero exit code on failure** (1 when masking fails, 2 for bad arguments) and always writes the error to stderr, even with `--no-output`.
 
 ## Nuget
 DataMasker is available as a library over on [nuget.org](https://www.nuget.org/packages/DataMasker/) should you need to customize any part of the process. Alternatively just ask for a new feature and I'll see what I can do.
@@ -164,7 +168,7 @@ If both `tables` and `tablesConfigPath` is supplied then `tablesConfigPath` wins
 | retainEmptyStringValues | true/false - when true if the existing value is null or empty (whitespace) then it will use the original value |
 | useLocalValueMappings | true/false |
 | useGlobalValueMappings | true/false |
-| unique | true/false - when true it will attempt to generate a unique value for this column|
+| unique | true/false - when true it will attempt to generate a unique value for this column. Values already in the table are excluded as well (the CLI does this automatically, library users call `SeedUniqueValues`). Can be combined with value mappings: the same source value always gets the same unique replacement. |
 | sqlValue | Used when type is set to sql
 
 ### Sql Value Configuration
@@ -492,8 +496,30 @@ There is some additional configuration required when using  `SqlServer`, on the 
   }
 }
 ```
+The `dataSource` object also accepts the following optional settings:
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| dryRun | false | Run everything inside transactions that are rolled back. `sqlStatements` are skipped entirely. |
+| updateBatchSize | 1000 | Number of rows read and updated per batch. Each batch is its own transaction. |
+| commandTimeout | 600 | Timeout in seconds for every query the data source runs, including `sqlStatements`. 0 means no timeout. |
+
+```json
+{
+  "dataSource":{
+    "type": "SqlServer",
+    "dryRun": false,
+    "updateBatchSize": 5000,
+    "commandTimeout": 1800,
+    "config":{ "connectionString": "..." }
+  }
+}
+```
+
 ### `SqlServer` Data Source
-Dry run is supported. A transaction is created, the update statement is executed and then the transaction is rolled back.
+Rows are read in pages ordered by the primary key, so memory use is bounded by `updateBatchSize` rather than the size of the table. Each batch is bulk copied into a temp table and applied with one `UPDATE ... JOIN`, which is far quicker than a statement per row on large tables.
+
+Dry run is supported. A transaction is created, the batch is applied and then the transaction is rolled back.
 
 ## Gender
 To ensure the new data is more accurate you may want to take gender into consideration when generating certain data types such as names. This can be achieved with a small amount of additional configuration. If no gender is specified then non gender specific names are generated.
@@ -538,6 +564,8 @@ The latest version can be found at [https://github.com/Steveiwonder/DataMasker/r
 The CLI is published as a self-contained Windows x64 build, so no separate .NET install is needed to run it.
 
 This is a CLI interface for the data masking tool. You might want to use this as part of your continuous integration if you backup/restore your live environments back to stage/dev after a release
+
+The exit code is 0 on success, 1 if masking fails and 2 if the arguments could not be parsed. Errors are written to stderr even when `--no-output` is set, so a CI pipeline can rely on the exit code.
 
 The options are as follows
 
