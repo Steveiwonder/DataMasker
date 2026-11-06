@@ -48,6 +48,9 @@ namespace DataMasker.Examples
       //enumerate all our tables
       foreach (TableConfig tableConfig in config.Tables)
       {
+        //make sure unique columns don't collide with values already in the table
+        dataMasker.SeedUniqueValues(dataSource, tableConfig);
+
         //load data
         IEnumerable<IDictionary<string, object>> rows = dataSource.GetData(tableConfig);
 

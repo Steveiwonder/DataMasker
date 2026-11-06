@@ -318,17 +318,20 @@ namespace DataMasker.Tests
         // ── DataType.None edge cases ──────────────────────────────────────────
 
         [TestMethod]
-        public void GetValue_NoneType_NoUseValueOrUseList_NonNullExistingValue_ThrowsArgumentOutOfRangeException()
+        public void GetValue_NoneType_NoUseValueOrUseList_NonNullExistingValue_ThrowsInvalidOperationException()
         {
-            // DataType.None is not handled in the private GetValue switch, so if execution
-            // reaches it (no UseValue, no UseList, existing value is non-null) it throws.
+            // DataType.None never generates data, so with no UseValue, UseList or mapping for a
+            // non-null existing value there is nothing to return and a clear error is raised.
             var col = new ColumnConfig { Name = "Status", Type = DataType.None };
             try
             {
                 Provider().GetValue(col, Row("Status", "active"), null);
-                Assert.Fail("Expected ArgumentOutOfRangeException for DataType.None with no UseValue/UseList");
+                Assert.Fail("Expected InvalidOperationException for DataType.None with no UseValue/UseList");
             }
-            catch (ArgumentOutOfRangeException) { }
+            catch (InvalidOperationException ex)
+            {
+                StringAssert.Contains(ex.Message, "None");
+            }
         }
 
         [TestMethod]

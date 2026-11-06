@@ -103,9 +103,9 @@ namespace DataMasker
         return GetValue(columnConfig, gender);
       }
 
-      if (HasValueMapping(columnConfig, existingValue))
+      if (TryGetValueMapping(columnConfig, existingValue, out object mappedValue))
       {
-        return GetValueMapping(columnConfig, existingValue);
+        return mappedValue;
       }
 
 
@@ -120,43 +120,26 @@ namespace DataMasker
     }
 
     /// <summary>
-    /// Determines whether [has value mapping] [the specified column configuration].
+    /// Looks up a previously stored (or configured) replacement for <paramref name="existingValue"/>.
     /// </summary>
     /// <param name="columnConfig">The column configuration.</param>
     /// <param name="existingValue">The existing value.</param>
-    /// <returns>
-    /// <c>true</c> if [has value mapping] [the specified column configuration]; otherwise, <c>false</c>.
-    /// </returns>
-    private bool HasValueMapping(
+    /// <param name="mappedValue">The replacement, when one exists.</param>
+    /// <returns><c>true</c> if a mapping exists; otherwise, <c>false</c>.</returns>
+    private bool TryGetValueMapping(
         ColumnConfig columnConfig,
-        object existingValue)
+        object existingValue,
+        out object mappedValue)
     {
+      mappedValue = null;
+
       if (columnConfig.UseGlobalValueMappings)
       {
-        return _globalValueMappings.ContainsKey(columnConfig.Name) &&
-               _globalValueMappings[columnConfig.Name]
-                  .ContainsKey(existingValue);
+        return _globalValueMappings.TryGetValue(columnConfig.Name, out IDictionary<object, object> columnMappings) &&
+               columnMappings.TryGetValue(existingValue, out mappedValue);
       }
 
-      return columnConfig.UseLocalValueMappings && columnConfig.ValueMappings.ContainsKey(existingValue);
-    }
-
-    /// <summary>
-    /// Gets the value mapping.
-    /// </summary>
-    /// <param name="columnConfig">The column configuration.</param>
-    /// <param name="existingValue">The existing value.</param>
-    /// <returns></returns>
-    private object GetValueMapping(
-        ColumnConfig columnConfig,
-        object existingValue)
-    {
-      if (columnConfig.UseGlobalValueMappings)
-      {
-        return _globalValueMappings[columnConfig.Name][existingValue];
-      }
-
-      return columnConfig.ValueMappings[existingValue];
+      return columnConfig.UseLocalValueMappings && columnConfig.ValueMappings.TryGetValue(existingValue, out mappedValue);
     }
 
     /// <summary>
@@ -225,6 +208,10 @@ namespace DataMasker
           return _faker.Parse(columnConfig.StringFormatPattern);
         case DataType.Computed:
           return null;
+        case DataType.None:
+          throw new InvalidOperationException(
+              $"Column '{columnConfig.Name}' is of type None, which never generates data. " +
+              "Supply 'useValue', 'useList', or a 'valueMappings' entry (with 'useLocalValueMappings': true) for every value in the column.");
       }
 
 
@@ -251,6 +238,7 @@ namespace DataMasker
         case DataType.StringFormat:
         case DataType.FullAddress:
         case DataType.PhoneNumber:
+        case DataType.Bogus:
         case DataType.None:
           return val;
         case DataType.DateOfBirth:

@@ -6,11 +6,20 @@ using DataMasker.Models;
 
 namespace DataMasker.DataSources
 {
+    /// <summary>
+    /// A small in-memory data source with a fixed "Users" table, handy for trying the library out
+    /// without a database.
+    /// </summary>
     public class InMemoryFakeDataSource : IDataSource
     {
-        private readonly IDictionary<string, IList<IDictionary<string, object>>> tables;
+        private readonly IDictionary<string, IList<IDictionary<string, object>>> _tables;
 
-        private IDictionary<string, IList<IDictionary<string, object>>> tableData
+        public InMemoryFakeDataSource()
+        {
+            _tables = CreateSeedData();
+        }
+
+        private static IDictionary<string, IList<IDictionary<string, object>>> CreateSeedData()
             => new Dictionary<string, IList<IDictionary<string, object>>>
             {
                 {
@@ -20,7 +29,7 @@ namespace DataMasker.DataSources
                         new Dictionary<string, object>
                         {
                             {"UserId", 1},
-                            {"  FirstName", "Steve"},
+                            {"FirstName", "Steve"},
                             {"LastName", "Smith"},
                             {"Password", "SecurePassword!!!11"},
                             {"DOB", DateTime.Parse("1974-09-23")},
@@ -54,16 +63,21 @@ namespace DataMasker.DataSources
                 }
             };
 
-        public InMemoryFakeDataSource()
+        private IList<IDictionary<string, object>> GetTable(
+            TableConfig tableConfig)
         {
-            tables = tableData;
+            if (!_tables.TryGetValue(tableConfig.Name, out IList<IDictionary<string, object>> rows))
+            {
+                throw new InvalidOperationException($"Table '{tableConfig.Name}' does not exist in the in-memory data source. Only 'Users' is available.");
+            }
+            return rows;
         }
 
         /// <inheritdoc/>
         public IEnumerable<IDictionary<string, object>> GetData(
             TableConfig tableConfig)
         {
-            return tableData[tableConfig.Name];
+            return GetTable(tableConfig);
         }
 
         /// <inheritdoc/>
@@ -71,20 +85,24 @@ namespace DataMasker.DataSources
             IDictionary<string, object> row,
             TableConfig tableConfig)
         {
+            IList<IDictionary<string, object>> rows = GetTable(tableConfig);
+            string primaryKey = tableConfig.PrimaryKeyColumn;
 
-            int index = tables[tableConfig.Name]
-               .IndexOf(
-                    tables[tableConfig.Name]
-                       .Single(
-                            x =>
-                            {
-                                bool e = x["UserId"]
-                                   .Equals(row["UserId"]);
+            if (!row.TryGetValue(primaryKey, out object key))
+            {
+                throw new InvalidOperationException($"Row does not contain the primary key column '{primaryKey}'.");
+            }
 
-                                return e;
-                            }));
+            for (int i = 0; i < rows.Count; i++)
+            {
+                if (Equals(rows[i][primaryKey], key))
+                {
+                    rows[i] = row;
+                    return;
+                }
+            }
 
-            tables[tableConfig.Name][index] = row;
+            throw new InvalidOperationException($"No row with {primaryKey} = '{key}' exists in table '{tableConfig.Name}'.");
         }
 
         /// <inheritdoc/>
@@ -94,16 +112,31 @@ namespace DataMasker.DataSources
             TableConfig config,
             Action<int> updatedCallback)
         {
-
-            foreach (IDictionary<string, object> dictionary in rows)
+            int totalUpdated = 0;
+            foreach (IDictionary<string, object> row in rows.ToList())
             {
-                UpdateRow(dictionary, config);
+                UpdateRow(row, config);
+                totalUpdated++;
+                updatedCallback?.Invoke(totalUpdated);
             }
         }
 
+        /// <inheritdoc/>
         public int GetCount(TableConfig config)
         {
-            return tables.TryGetValue(config.Name, out var rows) ? rows.Count : 0;
+            return _tables.TryGetValue(config.Name, out var rows) ? rows.Count : 0;
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<object> GetDistinctValues(
+            TableConfig tableConfig,
+            string columnName)
+        {
+            return GetTable(tableConfig)
+                .Select(row => row.TryGetValue(columnName, out object value) ? value : null)
+                .Where(value => value != null)
+                .Distinct()
+                .ToList();
         }
     }
 }

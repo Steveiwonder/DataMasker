@@ -1,4 +1,5 @@
-﻿using Bogus.DataSets;
+﻿using System;
+using Bogus.DataSets;
 using DataMasker.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,10 +37,10 @@ namespace DataMasker.Utils
 
             return null;
         }
-     
+
         internal static IDictionary<string, object> MakeParamNamesSafe(IDictionary<string, object> param)
         {
-            return param.ToDictionary(d => $"{MakeParamNameSafe(d.Key)}", d => d.Value);
+            return param.ToDictionary(d => MakeParamNameSafe(d.Key), d => d.Value);
         }
 
         internal static string MakeParamNameSafe(string paramName)
@@ -47,23 +48,38 @@ namespace DataMasker.Utils
             return paramName.Replace(" ", "_").Replace("-", "_");
         }
 
-        internal static string MakeColumnNameSafe(string paramName)
+        /// <summary>
+        /// Quotes an identifier (column, table or schema name) for use in SQL. A name that is
+        /// already wrapped in square brackets is used as-is; anything else is wrapped and any
+        /// closing bracket inside it is escaped.
+        /// </summary>
+        internal static string MakeColumnNameSafe(string identifier)
         {
-            if (paramName[0] != '[')
+            if (string.IsNullOrWhiteSpace(identifier))
             {
-                paramName = $"[{paramName}";
+                throw new ArgumentException("An identifier (column, table or schema name) in the configuration is empty.", nameof(identifier));
             }
 
-            if (paramName[paramName.Length-1] != ']')
+            if (identifier.Length >= 2 && identifier[0] == '[' && identifier[identifier.Length - 1] == ']')
             {
-                paramName = $"{paramName}]";
+                return identifier;
             }
 
-            return paramName;
+            return "[" + identifier.Replace("]", "]]") + "]";
         }
 
         public static string GetConnectionString(this DataSourceConfig sourceConfig)
         {
+            if (sourceConfig == null)
+            {
+                throw new ArgumentNullException(nameof(sourceConfig));
+            }
+
+            if (sourceConfig.Config == null)
+            {
+                throw new InvalidOperationException("The 'dataSource.config' section is missing from the configuration. Supply a 'connectionString', or 'server', 'name', 'userName' and 'password'.");
+            }
+
             string connectionString;
             if (sourceConfig.Config.connectionString != null && !string.IsNullOrWhiteSpace(sourceConfig.Config.connectionString.ToString()))
             {

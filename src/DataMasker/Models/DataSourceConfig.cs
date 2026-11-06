@@ -23,6 +23,7 @@ namespace DataMasker.Models
         /// The configuration.
         /// </value>
         public dynamic Config { get; set; }
+
         /// <summary>
         /// When true, will not push the changes to the target source, it will execute with a rollback
         /// </summary>
@@ -32,11 +33,18 @@ namespace DataMasker.Models
         public bool DryRun { get; set; }
 
         /// <summary>
-        /// Gets or sets the batch size to use when updating
+        /// Gets or sets the number of rows read and updated per batch. Each batch is its own
+        /// transaction. Defaults to 1000 when not set or not positive.
         /// </summary>
         /// <value>
         /// The size of the update batch.
         /// </value>
         public int? UpdateBatchSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the command timeout, in seconds, applied to every query the data source
+        /// runs, including the configured sqlStatements. 0 means no timeout. Defaults to 600.
+        /// </summary>
+        public int? CommandTimeout { get; set; }
     }
 }
