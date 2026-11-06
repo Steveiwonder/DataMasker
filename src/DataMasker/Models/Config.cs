@@ -65,6 +65,12 @@ namespace DataMasker.Models
             {
                 config.DataGeneration = new DataGenerationConfig();
             }
+
+            // sqlStatements is optional, default to an empty list so callers don't have to null check
+            if (config.SqlStatements == null)
+            {
+                config.SqlStatements = new List<SqlStatementConfig>();
+            }
             return config;
         }
     }

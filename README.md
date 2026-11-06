@@ -534,7 +534,8 @@ The options are as follows
 
 >  -c, --config-file         Required. the json configuration to be
 >
->  -d, --dry-run             (Default: false) dry run, only supported by some data sources
+>  -d, --dry-run             (Default: false) if set, performs a dry run (changes are rolled back), only supported by
+>                            some data sources
 >
 >  -l, --locale              set the locale
 >
