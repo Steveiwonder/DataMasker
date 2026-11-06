@@ -7,8 +7,8 @@ namespace DataMasker.Runner
     [Option('c', "config-file", Required = true, HelpText = "the json configuration to be")]
     public string ConfigFile { get; set; }
 
-    [Option('d', "dry-run", Default = false, Required = false, HelpText = "dry run, only supported by some data sources")]
-    public bool? DryRun { get; set; }
+    [Option('d', "dry-run", Default = false, Required = false, HelpText = "if set, performs a dry run (changes are rolled back), only supported by some data sources")]
+    public bool DryRun { get; set; }
 
     [Option('l', "locale", Default = null, HelpText = "set the locale")]
     public string Locale { get; set; }

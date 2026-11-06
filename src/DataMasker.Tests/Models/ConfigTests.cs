@@ -82,6 +82,61 @@ namespace DataMasker.Tests.Models
         }
 
         [TestMethod]
+        public void Load_ConfigWithoutSqlStatements_DefaultsToEmptyList()
+        {
+            string tempFile = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(tempFile, @"{
+                    ""dataSource"": {
+                        ""type"": ""SqlServer"",
+                        ""config"": { ""connectionString"": ""Server=.;Database=test;"" }
+                    },
+                    ""tables"": [
+                        {
+                            ""name"": ""Users"",
+                            ""primaryKeyColumn"": ""Id"",
+                            ""columns"": []
+                        }
+                    ]
+                }");
+                var config = Config.Load(tempFile);
+                Assert.IsNotNull(config.SqlStatements, "SqlStatements should default to an empty list when not provided");
+                Assert.AreEqual(0, config.SqlStatements.Count);
+            }
+            finally
+            {
+                File.Delete(tempFile);
+            }
+        }
+
+        [TestMethod]
+        public void Load_ConfigWithSqlStatements_LoadsThem()
+        {
+            string tempFile = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(tempFile, @"{
+                    ""dataSource"": {
+                        ""type"": ""SqlServer"",
+                        ""config"": { ""connectionString"": ""Server=.;Database=test;"" }
+                    },
+                    ""tables"": [],
+                    ""sqlStatements"": [
+                        { ""name"": ""Clear audit log"", ""statement"": ""TRUNCATE TABLE AuditLog"" }
+                    ]
+                }");
+                var config = Config.Load(tempFile);
+                Assert.AreEqual(1, config.SqlStatements.Count);
+                Assert.AreEqual("TRUNCATE TABLE AuditLog", config.SqlStatements[0].Statement);
+            }
+            finally
+            {
+                File.Delete(tempFile);
+            }
+        }
+
+        [TestMethod]
         public void Load_TablesConfigPath_LoadsTablesFromExternalFile()
         {
             string tableFile  = Path.GetTempFileName();

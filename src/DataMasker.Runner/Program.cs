@@ -96,9 +96,11 @@ namespace DataMasker.Runner
 
             InitProgressBars();
             Config config = Config.Load(cliOptions.ConfigFile);
-            if (cliOptions.DryRun != null)
+            // --dry-run is a switch, so it can only ever turn dry run on. When it isn't
+            // supplied we leave whatever the config file says alone.
+            if (cliOptions.DryRun)
             {
-                config.DataSource.DryRun = cliOptions.DryRun.Value;
+                config.DataSource.DryRun = true;
             }
 
             if (!string.IsNullOrEmpty(cliOptions.Locale))
@@ -171,20 +173,19 @@ namespace DataMasker.Runner
                 UpdateProgress(ProgressType.Overall, i + 1);
             }
 
-            ISqlStatementDataSource sqlStatementDataSource = SqlStatementDataProvier.Provide(config.DataSource.Type, config.DataSource);
-
-            for (int i = 0; i < config.SqlStatements.Count; i++)
+            if (config.SqlStatements != null && config.SqlStatements.Count > 0)
             {
-                SqlStatementConfig sqlStatementConfig = config.SqlStatements[i];
+                ISqlStatementDataSource sqlStatementDataSource = SqlStatementDataProvier.Provide(config.DataSource.Type, config.DataSource);
 
-                //IDataMasker dataMasker = new DataMasker(dataProviders);
+                for (int i = 0; i < config.SqlStatements.Count; i++)
+                {
+                    SqlStatementConfig sqlStatementConfig = config.SqlStatements[i];
 
-                var rowCount = config.SqlStatements.Count();
-                UpdateProgress(ProgressType.Masking, 0, (int)rowCount, "Masking Progress");
-                UpdateProgress(ProgressType.Updating, 0, (int)rowCount, "Update Progress");
-                sqlStatementDataSource.Execute(sqlStatementConfig);
-
-
+                    var rowCount = config.SqlStatements.Count;
+                    UpdateProgress(ProgressType.Masking, 0, rowCount, "Masking Progress");
+                    UpdateProgress(ProgressType.Updating, 0, rowCount, "Update Progress");
+                    sqlStatementDataSource.Execute(sqlStatementConfig);
+                }
             }
 
             WriteLine("Done");

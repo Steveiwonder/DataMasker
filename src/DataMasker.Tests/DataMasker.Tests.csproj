@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DataMasker\DataMasker.csproj" />
+    <ProjectReference Include="..\DataMasker.Runner\DataMasker.Runner.csproj" />
   </ItemGroup>
 
   <ItemGroup>
