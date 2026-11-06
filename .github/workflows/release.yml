@@ -1,0 +1,95 @@
+name: Release
+
+# Every push to master produces a new release. The version is <major.minor from the
+# VersionPrefix in Directory.Build.props>.<patch>, where patch is one higher than the
+# latest existing tag with that prefix. Bump VersionPrefix to start a new major or
+# minor line.
+#
+# Add "[skip release]" to a commit message to push to master without releasing.
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: "!contains(github.event.head_commit.message, '[skip release]')"
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # full history so existing tags are visible
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Work out next version
+      id: version
+      shell: bash
+      run: |
+        prefix=$(sed -n 's/.*<VersionPrefix>\([0-9][0-9]*\.[0-9][0-9]*\)\.[0-9][0-9]*<\/VersionPrefix>.*/\1/p' Directory.Build.props)
+        if [ -z "$prefix" ]; then
+          echo "VersionPrefix not found in Directory.Build.props" >&2
+          exit 1
+        fi
+
+        latest=$(git tag --list "${prefix}.[0-9]*" | sort -t. -k3,3n | tail -n1)
+        if [ -z "$latest" ]; then
+          patch=0
+        else
+          patch=$(( ${latest##*.} + 1 ))
+        fi
+
+        version="${prefix}.${patch}"
+        echo "Previous: ${latest:-none}  Next: ${version}"
+        echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+    - name: Restore
+      run: dotnet restore ./src/DataMasker.sln
+
+    - name: Build
+      run: dotnet build ./src/DataMasker.sln -c Release --no-restore -p:Version=${{ steps.version.outputs.version }}
+
+    - name: Test
+      run: dotnet test ./src/DataMasker.Tests/DataMasker.Tests.csproj -c Release --no-build --verbosity normal
+
+    - name: Pack library
+      run: dotnet pack ./src/DataMasker/DataMasker.csproj -c Release --no-build -o ./build/ -p:Version=${{ steps.version.outputs.version }}
+
+    - name: Push to NuGet
+      run: dotnet nuget push ./build/DataMasker.${{ steps.version.outputs.version }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+    - name: Publish CLI (win-x64)
+      run: dotnet publish ./src/DataMasker.Runner/DataMasker.Runner.csproj -c Release -r win-x64 --self-contained -o ./runner-build/ -p:Version=${{ steps.version.outputs.version }}
+
+    - name: Zip CLI
+      run: cd ./runner-build && zip -r ../DataMasker.Runner.zip .
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: DataMasker.${{ steps.version.outputs.version }}
+        path: |
+          ./build/DataMasker.${{ steps.version.outputs.version }}.nupkg
+          ./DataMasker.Runner.zip
+
+    - name: Create GitHub release
+      uses: ncipollo/release-action@v1
+      with:
+        tag: ${{ steps.version.outputs.version }}
+        name: ${{ steps.version.outputs.version }}
+        commit: ${{ github.sha }}
+        artifacts: "DataMasker.Runner.zip,./build/DataMasker.${{ steps.version.outputs.version }}.nupkg"
+        generateReleaseNotes: true
+        token: ${{ secrets.GITHUB_TOKEN }}

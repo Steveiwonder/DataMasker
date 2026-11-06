@@ -1,6 +1,9 @@
 <Project>
   <PropertyGroup>
 
+    <!-- Base version for local builds. The release workflow keeps Major.Minor and replaces the patch with an auto-incremented number. -->
+    <VersionPrefix>3.0.0</VersionPrefix>
+
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <RepositoryType>git</RepositoryType>
