@@ -6,6 +6,10 @@ name: Release
 # minor line.
 #
 # Add "[skip release]" to a commit message to push to master without releasing.
+#
+# The NuGet push is a separate job so that an expired or missing NUGET_API_KEY does not
+# block the GitHub release. If it fails, fix the secret and re-run the failed job
+# (gh run rerun <run id> --failed); the package it pushes is the one attached to the release.
 
 on:
   push:
@@ -23,6 +27,8 @@ jobs:
   release:
     if: "!contains(github.event.head_commit.message, '[skip release]')"
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
     - uses: actions/checkout@v4
@@ -67,22 +73,23 @@ jobs:
     - name: Pack library
       run: dotnet pack ./src/DataMasker/DataMasker.csproj -c Release --no-build -o ./build/ -p:Version=${{ steps.version.outputs.version }}
 
-    - name: Push to NuGet
-      run: dotnet nuget push ./build/DataMasker.${{ steps.version.outputs.version }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-
     - name: Publish CLI (win-x64)
       run: dotnet publish ./src/DataMasker.Runner/DataMasker.Runner.csproj -c Release -r win-x64 --self-contained -o ./runner-build/ -p:Version=${{ steps.version.outputs.version }}
 
     - name: Zip CLI
       run: cd ./runner-build && zip -r ../DataMasker.Runner.zip .
 
-    - name: Upload build artifacts
+    - name: Upload NuGet package artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DataMasker.${{ steps.version.outputs.version }}
-        path: |
-          ./build/DataMasker.${{ steps.version.outputs.version }}.nupkg
-          ./DataMasker.Runner.zip
+        name: nupkg
+        path: ./build/DataMasker.${{ steps.version.outputs.version }}.nupkg
+
+    - name: Upload CLI artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: DataMasker.Runner.${{ steps.version.outputs.version }}
+        path: ./DataMasker.Runner.zip
 
     - name: Create GitHub release
       uses: ncipollo/release-action@v1
@@ -93,3 +100,22 @@ jobs:
         artifacts: "DataMasker.Runner.zip,./build/DataMasker.${{ steps.version.outputs.version }}.nupkg"
         generateReleaseNotes: true
         token: ${{ secrets.GITHUB_TOKEN }}
+
+  nuget:
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Download NuGet package
+      uses: actions/download-artifact@v4
+      with:
+        name: nupkg
+        path: ./build/
+
+    - name: Push to NuGet
+      run: dotnet nuget push ./build/DataMasker.${{ needs.release.outputs.version }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
