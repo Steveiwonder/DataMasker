@@ -10,6 +10,14 @@ Data generation is provided by [https://github.com/bchavez/Bogus](https://github
 
 >Bogus will help you load databases, UI and apps with fake data for your testing needs. If you like Bogus star ⭐️ the repository and show your friends! 😄
 
+## Upgrading to 3.0
+
+Version 3.0 is a breaking release. Before upgrading, note the following:
+
+- **.NET 10 is required.** The library and the CLI now target `net10.0`. .NET 8 is no longer supported.
+- **`Microsoft.Data.SqlClient` replaces `System.Data.SqlClient`.** If you construct a `SqlDataProvider` yourself, pass a `Microsoft.Data.SqlClient.SqlConnection`. `Microsoft.Data.SqlClient` encrypts connections by default (`Encrypt=True`), so a server without a trusted certificate will now fail to connect unless your connection string includes `TrustServerCertificate=True` or `Encrypt=False`. The old client did not enforce this.
+- **Releases are automatic.** Every push to `master` publishes a new `3.0.x` version to NuGet and GitHub Releases.
+
 ## Nuget
 DataMasker is available as a library over on [nuget.org](https://www.nuget.org/packages/DataMasker/) should you need to customize any part of the process. Alternatively just ask for a new feature and I'll see what I can do.
 
@@ -526,6 +534,8 @@ Check out the Bogus page for a [list of supported locales](https://github.com/bc
 ## DataMasker.Runner (CLI)
 
 The latest version can be found at [https://github.com/Steveiwonder/DataMasker/releases](https://github.com/Steveiwonder/DataMasker/releases)
+
+The CLI is published as a self-contained Windows x64 build, so no separate .NET install is needed to run it.
 
 This is a CLI interface for the data masking tool. You might want to use this as part of your continuous integration if you backup/restore your live environments back to stage/dev after a release
 

@@ -36,7 +36,7 @@ namespace DataMasker.Examples
       var dataProviders = new List<IDataProvider>
       {
           new BogusDataProvider(config.DataGeneration),
-          new SqlDataProvider(new System.Data.SqlClient.SqlConnection(config.DataSource.GetConnectionString()))
+          new SqlDataProvider(new Microsoft.Data.SqlClient.SqlConnection(config.DataSource.GetConnectionString()))
       };
       //create a data masker
       IDataMasker dataMasker = new DataMasker(dataProviders);
