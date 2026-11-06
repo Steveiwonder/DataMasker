@@ -7,9 +7,12 @@ name: Release
 #
 # Add "[skip release]" to a commit message to push to master without releasing.
 #
-# The NuGet push is a separate job so that an expired or missing NUGET_API_KEY does not
-# block the GitHub release. If it fails, fix the secret and re-run the failed job
-# (gh run rerun <run id> --failed); the package it pushes is the one attached to the release.
+# The NuGet push is a separate job so that a NuGet problem does not block the GitHub
+# release. It uses nuget.org trusted publishing: the job's OIDC token is exchanged for a
+# short-lived API key by NuGet/login, so no long-lived secret is stored. The trusted
+# publishing policy on nuget.org must point at this repository and this workflow file.
+# If the push fails, fix the policy and re-run the failed job (gh run rerun <run id> --failed);
+# the package it pushes is the one attached to the release.
 
 on:
   push:
@@ -104,6 +107,9 @@ jobs:
   nuget:
     needs: release
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # needed to obtain the OIDC token for trusted publishing
+      contents: read
 
     steps:
     - name: Setup .NET
@@ -117,5 +123,11 @@ jobs:
         name: nupkg
         path: ./build/
 
+    - name: Log in to nuget.org (trusted publishing)
+      id: nuget-login
+      uses: NuGet/login@v1
+      with:
+        user: Falcubar # nuget.org profile that owns the package and the trusted publishing policy
+
     - name: Push to NuGet
-      run: dotnet nuget push ./build/DataMasker.${{ needs.release.outputs.version }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      run: dotnet nuget push ./build/DataMasker.${{ needs.release.outputs.version }}.nupkg --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
