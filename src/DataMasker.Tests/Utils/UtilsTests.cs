@@ -32,6 +32,13 @@ namespace DataMasker.Tests.Utils
             Assert.AreEqual("_1_email_address", DMUtils.MakeParamNameSafe("1.email@address"));
         }
 
+        [TestMethod]
+        public void ParameterNames_PreserveUnicodeLettersForExistingSqlQueries()
+        {
+            Assert.AreEqual("Émail", DMUtils.MakeParamNameSafe("Émail"));
+            Assert.AreEqual("名前", DMUtils.MakeParamNameSafe("名前"));
+        }
+
         // ── TryParseGender ────────────────────────────────────────────────────
 
         [TestMethod]

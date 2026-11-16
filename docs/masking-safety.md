@@ -24,7 +24,10 @@ SQL Server uniqueness seeding uses column collation metadata for case, accent,
 width, kana, binary and trailing-space comparisons. SQL Server unique indexes
 remain the final authority, including collation-version-specific behavior and
 composite/filtered indexes which a per-column setting does not model. Custom
-sources can implement `IUniqueValueComparerSource`.
+sources can implement `IUniqueValueComparerSource`. Seed destination values before
+masking a table. Source equality rules replace default rules for supplemental
+seeds before masking starts; once reservations exist, their comparison rules
+remain stable for the rest of the run.
 
 ## Dry-run and queries
 
