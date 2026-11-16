@@ -19,10 +19,20 @@ namespace DataMasker
   public class SqlDataProvider : IDataProvider
   {
     private readonly IDbConnection _connection;
+    private readonly int _commandTimeout;
+    private readonly bool _dryRun;
 
     public SqlDataProvider(IDbConnection connection)
+      : this(connection, null, false)
+    {
+    }
+
+    public SqlDataProvider(IDbConnection connection, int? commandTimeout, bool dryRun = false)
     {
       _connection = connection ?? throw new ArgumentNullException(nameof(connection));
+      _commandTimeout = commandTimeout.HasValue && commandTimeout.Value >= 0
+        ? commandTimeout.Value : DataSources.SqlDataSource.DefaultCommandTimeoutSeconds;
+      _dryRun = dryRun;
     }
 
     public bool CanProvide(DataType dataType)
@@ -44,7 +54,14 @@ namespace DataMasker
 
       IDictionary<string, object> safeObj = Utils.Utils.MakeParamNamesSafe(obj);
       DynamicParameters dynamicParameters = new DynamicParameters(safeObj);
-      object newValue = _connection.ExecuteScalar(columnConfig.SqlValue.Query, dynamicParameters);
+      object newValue;
+      // A scalar query may contain DML. Roll back transactional side effects during dry-run.
+      using (IDbTransaction transaction = _dryRun ? _connection.BeginTransaction() : null)
+      {
+        newValue = _connection.ExecuteScalar(columnConfig.SqlValue.Query, dynamicParameters,
+          transaction: transaction, commandTimeout: _commandTimeout);
+        transaction?.Rollback();
+      }
       if (newValue == null && columnConfig.SqlValue.ValueHandling == NotFoundValueHandling.KeepValue)
       {
         newValue = obj[columnConfig.Name];

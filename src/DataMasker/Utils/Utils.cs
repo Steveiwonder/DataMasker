@@ -1,8 +1,10 @@
-﻿using System;
+using System;
 using Bogus.DataSets;
 using DataMasker.Models;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.SqlClient;
+using System.Text.RegularExpressions;
 
 namespace DataMasker.Utils
 {
@@ -40,12 +42,23 @@ namespace DataMasker.Utils
 
         internal static IDictionary<string, object> MakeParamNamesSafe(IDictionary<string, object> param)
         {
-            return param.ToDictionary(d => MakeParamNameSafe(d.Key), d => d.Value);
+            var result = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            foreach (var item in param)
+            {
+                string name = MakeParamNameSafe(item.Key);
+                if (result.ContainsKey(name))
+                    throw new InvalidOperationException($"Column names produce the same SQL parameter '{name}'. Rename or alias the conflicting columns.");
+                result.Add(name, item.Value);
+            }
+            return result;
         }
 
         internal static string MakeParamNameSafe(string paramName)
         {
-            return paramName.Replace(" ", "_").Replace("-", "_");
+            if (string.IsNullOrWhiteSpace(paramName))
+                throw new ArgumentException("SQL parameter name cannot be empty.", nameof(paramName));
+            string name = Regex.Replace(paramName, @"[^a-zA-Z0-9_]", "_");
+            return char.IsDigit(name[0]) ? "_" + name : name;
         }
 
         /// <summary>
@@ -87,8 +100,14 @@ namespace DataMasker.Utils
             }
             else
             {
-                connectionString =
-                    $"User ID={sourceConfig.Config.userName};Password={sourceConfig.Config.password};Data Source={sourceConfig.Config.server};Initial Catalog={sourceConfig.Config.name};Persist Security Info=False;";
+                connectionString = new SqlConnectionStringBuilder
+                {
+                    UserID = (string)sourceConfig.Config.userName ?? string.Empty,
+                    Password = (string)sourceConfig.Config.password ?? string.Empty,
+                    DataSource = (string)sourceConfig.Config.server ?? string.Empty,
+                    InitialCatalog = (string)sourceConfig.Config.name ?? string.Empty,
+                    PersistSecurityInfo = false
+                }.ConnectionString;
             }
 
             return connectionString;

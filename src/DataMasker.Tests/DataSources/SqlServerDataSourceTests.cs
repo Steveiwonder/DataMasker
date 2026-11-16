@@ -14,7 +14,7 @@ namespace DataMasker.Tests.DataSources
     [TestClass]
     public class SqlServerDataSourceTests
     {
-        private const string ConnectionString =
+        private static string ConnectionString => Environment.GetEnvironmentVariable("DATAMASKER_TEST_SQL_CONNECTION") ??
             @"Server=(localdb)\MSSQLLocalDB;Database=tempdb;Integrated Security=true;TrustServerCertificate=true;Connect Timeout=5";
 
         private const int RowCount = 25;
@@ -25,8 +25,10 @@ namespace DataMasker.Tests.DataSources
         [TestInitialize]
         public void Setup()
         {
-            if (!OperatingSystem.IsWindows())
+            if (!OperatingSystem.IsWindows() && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DATAMASKER_TEST_SQL_CONNECTION")))
             {
+                if (Environment.GetEnvironmentVariable("DATAMASKER_REQUIRE_SQL_TESTS") == "true")
+                    Assert.Fail("Required SQL Server connection is not configured.");
                 Assert.Inconclusive("SQL Server LocalDB is only available on Windows.");
             }
 
@@ -37,6 +39,9 @@ namespace DataMasker.Tests.DataSources
             }
             catch (Exception ex)
             {
+                if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DATAMASKER_TEST_SQL_CONNECTION")) ||
+                    string.Equals(Environment.GetEnvironmentVariable("DATAMASKER_REQUIRE_SQL_TESTS"), "true", StringComparison.OrdinalIgnoreCase))
+                    Assert.Fail($"Required SQL Server integration database is unavailable: {ex.Message}");
                 Assert.Inconclusive($"SQL Server LocalDB is not available: {ex.Message}");
             }
 
@@ -91,6 +96,44 @@ namespace DataMasker.Tests.DataSources
 
         private List<dynamic> ReadAll() =>
             _connection.Query($"SELECT * FROM [dbo].[{_table}] ORDER BY [UserId]").ToList();
+
+        [TestMethod]
+        public void UpdateRow_DryRun_DoesNotPersist()
+        {
+            var source = new SqlDataSource(MakeConfig(dryRun: true));
+            var table = UsersTable();
+            var row = source.GetData(table).First();
+            row["FirstName"] = "Changed";
+            source.UpdateRow(row, table);
+            Assert.AreEqual("First0", (string)ReadAll()[0].FirstName);
+        }
+
+        [TestMethod]
+        public void UniqueComparer_MatchesCaseAccentAndTrailingSpaceCollation()
+        {
+            _connection.Execute($"ALTER TABLE [dbo].[{_table}] ALTER COLUMN [FirstName] NVARCHAR(50) COLLATE Latin1_General_100_CI_AI NOT NULL");
+            var source = new SqlDataSource(MakeConfig());
+            var comparer = source.GetValueComparer(UsersTable(), "FirstName");
+            Assert.IsTrue(comparer.Equals("café", "CAFE "));
+            Assert.AreEqual(comparer.GetHashCode("café"), comparer.GetHashCode("CAFE "));
+            _connection.Execute($"ALTER TABLE [dbo].[{_table}] ALTER COLUMN [FirstName] NVARCHAR(50) COLLATE Latin1_General_100_BIN2 NOT NULL");
+            comparer = source.GetValueComparer(UsersTable(), "FirstName");
+            Assert.IsFalse(comparer.Equals("a", "A"));
+            Assert.IsTrue(comparer.Equals("a", "a "));
+        }
+
+        [TestMethod]
+        public void SqlProvider_DryRun_RollsBackTransactionalQuerySideEffects()
+        {
+            var provider = new SqlDataProvider(_connection, 30, true);
+            object value = provider.GetValue(new ColumnConfig
+            {
+                Name = "FirstName", Type = DataType.Sql,
+                SqlValue = new SqlValueConfig { Query = $"UPDATE [dbo].[{_table}] SET [FirstName]='Changed'; SELECT 'value'" }
+            }, new Dictionary<string, object>(), null);
+            Assert.AreEqual("value", value);
+            Assert.AreEqual("First0", (string)ReadAll()[0].FirstName);
+        }
 
         [TestMethod]
         public void GetData_PagesThroughAllRowsInPrimaryKeyOrder()
