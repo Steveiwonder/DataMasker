@@ -1,33 +1,15 @@
 name: CI
 
 on:
-  push:
-    branches: [ master ]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        framework: [net10.0, net11.0]
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        global-json-file: global.json
-        dotnet-version: |
-          10.0.x
-          11.0.x
-
-    - name: Restore
-      run: dotnet restore ./src/DataMasker.sln --locked-mode
-
-    - name: Build
-      run: dotnet build ./src/DataMasker.sln -c Release --no-restore
-
-    - name: Test
-      run: dotnet test ./src/DataMasker.Tests/DataMasker.Tests.csproj -c Release -f ${{ matrix.framework }} --no-build --verbosity normal
+  validate:
+    uses: ./.github/workflows/validate.yml

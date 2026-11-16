@@ -1,0 +1,117 @@
+name: Validate
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test ${{ matrix.os }} / ${{ matrix.framework }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        framework: [net10.0, net11.0]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+          dotnet-version: |
+            10.0.x
+            11.0.x
+          cache: true
+          cache-dependency-path: src/**/packages.lock.json
+      - name: Test release version reservation
+        if: runner.os == 'Linux' && matrix.framework == 'net10.0'
+        run: python3 -m unittest discover -s .github/scripts -p "test_*.py"
+      - name: Restore locked dependencies
+        run: dotnet restore src/DataMasker.sln --locked-mode
+      - name: Build
+        run: dotnet build src/DataMasker.sln -c Release --no-restore
+      - name: Test
+        run: dotnet test src/DataMasker.Tests/DataMasker.Tests.csproj -c Release -f ${{ matrix.framework }} --no-build --logger trx --collect:"XPlat Code Coverage" --results-directory TestResults
+      - name: Pack compatibility fixture
+        run: dotnet pack src/DataMasker/DataMasker.csproj -c Release --no-restore -p:Version=0.0.0-ci -o artifacts/compat-feed
+      - name: Restore package consumer
+        shell: pwsh
+        run: dotnet restore tests/PackageConsumer/PackageConsumer.csproj --configfile tests/PackageConsumer/NuGet.Config --packages artifacts/consumer-packages
+      - name: Run package consumer
+        run: dotnet run --project tests/PackageConsumer -c Release -f ${{ matrix.framework }} --no-restore
+      - name: Run .NET Framework consumer
+        if: runner.os == 'Windows' && matrix.framework == 'net10.0'
+        shell: pwsh
+        run: |
+          dotnet build tests/PackageConsumer -c Release -f net472 --no-restore
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & ./tests/PackageConsumer/bin/Release/net472/PackageConsumer.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Publish and smoke test Windows executable
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          dotnet publish src/DataMasker.Runner/DataMasker.Runner.csproj -c Release -f ${{ matrix.framework }} -r win-x64 --self-contained true --no-restore -o artifacts/runner
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Compress-Archive artifacts/runner/* artifacts/runner.zip
+          Expand-Archive artifacts/runner.zip artifacts/extracted
+          & ./artifacts/extracted/DataMasker.Runner.exe --help
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & ./artifacts/extracted/DataMasker.Runner.exe -c tests/fixtures/runner-smoke.json --no-output
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Retain test reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tests-${{ matrix.os }}-${{ matrix.framework }}
+          path: TestResults/
+          retention-days: 14
+
+  sql-server:
+    name: SQL Server integration / ${{ matrix.framework }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        framework: [net10.0, net11.0]
+    services:
+      sql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: CI_Only_DataMasker_493!Test
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd="/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'CI_Only_DataMasker_493!Test' -C -Q 'SELECT 1' -b"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+          --health-start-period=20s
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+          dotnet-version: |
+            10.0.x
+            11.0.x
+          cache: true
+          cache-dependency-path: src/**/packages.lock.json
+      - run: dotnet restore src/DataMasker.sln --locked-mode
+      - name: Run tests against SQL Server
+        env:
+          DATAMASKER_TEST_SQL_CONNECTION: Server=localhost,1433;Database=tempdb;User ID=sa;Password=CI_Only_DataMasker_493!Test;TrustServerCertificate=True
+          DATAMASKER_REQUIRE_SQL_TESTS: 'true'
+        run: dotnet test src/DataMasker.Tests/DataMasker.Tests.csproj -c Release -f ${{ matrix.framework }} --no-restore --logger trx --results-directory TestResults
+      - name: Retain SQL test reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sql-tests-${{ matrix.framework }}
+          path: TestResults/
+          retention-days: 14
