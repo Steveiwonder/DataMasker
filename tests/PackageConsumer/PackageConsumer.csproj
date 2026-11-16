@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net472;net10.0;net11.0</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- This consumes a freshly packed artifact, whose hash changes between commits. -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <DataMaskerVersion Condition="'$(DataMaskerVersion)' == ''">0.0.0-ci</DataMaskerVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="DataMasker" Version="[$(DataMaskerVersion)]" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

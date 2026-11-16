@@ -5,6 +5,7 @@
     <VersionPrefix>3.0.0</VersionPrefix>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Steveiwonder/DataMasker</RepositoryUrl>

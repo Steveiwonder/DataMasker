@@ -1,4 +1,4 @@
-[![.NET Core](https://github.com/Steveiwonder/DataMasker/actions/workflows/dotnet-core.yml/badge.svg)](https://github.com/Steveiwonder/DataMasker/actions/workflows/dotnet-core.yml)
+[![.NET Core](https://github.com/Steveiwonder/DataMasker/actions/workflows/ci.yml/badge.svg)](https://github.com/Steveiwonder/DataMasker/actions/workflows/ci.yml)
 # DataMasker
 A free data masking/anonymizer library for Sql Server written in .NET
 
@@ -14,7 +14,7 @@ Data generation is provided by [https://github.com/bchavez/Bogus](https://github
 
 Version 3.0 is a breaking release. Before upgrading, note the following:
 
-- **.NET 10 is required.** The library and the CLI now target `net10.0`. .NET 8 is no longer supported.
+- **The library supports .NET Standard 2.0 and .NET 10.** NuGet selects the appropriate asset for your application. The CLI can be built for .NET 10 and .NET 11.
 - **`Microsoft.Data.SqlClient` replaces `System.Data.SqlClient`.** If you construct a `SqlDataProvider` yourself, pass a `Microsoft.Data.SqlClient.SqlConnection`. `Microsoft.Data.SqlClient` encrypts connections by default (`Encrypt=True`), so a server without a trusted certificate will now fail to connect unless your connection string includes `TrustServerCertificate=True` or `Encrypt=False`. The old client did not enforce this.
 - **Releases are automatic.** Every push to `master` publishes a new `3.0.x` version to NuGet and GitHub Releases.
 - **`IDataSource` and `IDataMasker` have grown.** `IDataSource` gains `GetDistinctValues(tableConfig, columnName)` and `IDataMasker` gains `SeedUniqueValues(...)`. If you implement either interface yourself you will need to add these. If you use the built-in `DataMasker` directly, call `dataMasker.SeedUniqueValues(dataSource, tableConfig)` before masking a table so that `unique` columns never collide with values already in the table.
@@ -26,6 +26,28 @@ Version 3.0 is a breaking release. Before upgrading, note the following:
 DataMasker is available as a library over on [nuget.org](https://www.nuget.org/packages/DataMasker/) should you need to customize any part of the process. Alternatively just ask for a new feature and I'll see what I can do.
 
 >install-package DataMasker
+
+## Runtime compatibility
+
+The `DataMasker` NuGet package contains `netstandard2.0` and `net10.0` assemblies with the same public API. Older compatible applications use the .NET Standard assembly; .NET 10 and 11 applications select the .NET 10 assembly. Package validation checks the API surfaces during packing.
+
+The package-consumer fixture exercises the actual packed NuGet package from a Windows .NET Framework 4.7.2 application and modern .NET 10/11 applications; the modern consumer also runs on Linux. The legacy consumer checks configuration loading, masking, updates and SqlClient initialization. Database integration tests can run against SQL Server separately. .NET Standard is an API contract, not a guarantee of support on every operating system or runtime: Microsoft.Data.SqlClient requires a supported .NET or Windows .NET Framework runtime. Browser, mobile and Unity SQL access are not advertised as supported.
+
+The command-line runner builds for .NET 10 and .NET 11. The current release workflow continues to publish the .NET 10 runner; separate .NET 11 release assets will be added with the workflow update. Building from source requires the .NET 11 SDK selected by `global.json`; running framework-dependent .NET 10 tests also requires the .NET 10 runtime. Use `dotnet run --project src/DataMasker.Runner -f net10.0 -- <arguments>` (or `net11.0`) when running the multi-target runner from source.
+
+For Microsoft Entra connection-string authentication modes such as `Active Directory Default`, the consuming application must additionally reference `Microsoft.Data.SqlClient.Extensions.Azure` at the same version as `Microsoft.Data.SqlClient`. SQL authentication and Windows integrated authentication do not need that extension.
+
+To test the published package locally before releasing:
+
+```sh
+dotnet restore src/DataMasker.sln --locked-mode
+dotnet pack src/DataMasker/DataMasker.csproj -c Release -p:Version=0.0.0-ci -o artifacts/compat-feed
+dotnet restore tests/PackageConsumer/PackageConsumer.csproj --configfile tests/PackageConsumer/NuGet.Config --packages artifacts/consumer-packages
+dotnet run --project tests/PackageConsumer -c Release -f net10.0 --no-restore
+dotnet run --project tests/PackageConsumer -c Release -f net11.0 --no-restore
+```
+
+On Windows, also build the consumer with `-f net472` and run `tests/PackageConsumer/bin/Release/net472/PackageConsumer.exe`. Delete the isolated `artifacts/consumer-packages/datamasker` cache before testing a newly packed build with the same version. The consumer intentionally has no dependency lock file because its local package hash changes on each build; production projects use committed lock files.
 
 ## Configuration
 All configuration is done via a .json file, of which an example can be seen below.
