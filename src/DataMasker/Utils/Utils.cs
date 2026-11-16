@@ -57,7 +57,7 @@ namespace DataMasker.Utils
         {
             if (string.IsNullOrWhiteSpace(paramName))
                 throw new ArgumentException("SQL parameter name cannot be empty.", nameof(paramName));
-            string name = Regex.Replace(paramName, @"[^a-zA-Z0-9_]", "_");
+            string name = Regex.Replace(paramName, @"[^\p{L}\p{Nd}_]", "_");
             return char.IsDigit(name[0]) ? "_" + name : name;
         }
 

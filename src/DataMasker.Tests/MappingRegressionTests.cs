@@ -230,4 +230,35 @@ public class MappingRegressionTests
         Assert.AreEqual("safe", row["Second"]);
     }
 
+    [TestMethod]
+    public void ConfiguredUniqueMapping_DoesNotRequireGenerationProvider()
+    {
+        var column = Column(global: false); column.UseLocalValueMappings = true;
+        column.ValueMappings = new Dictionary<object, object> { ["original"] = "mapped" };
+        var masker = new DataMasker(Array.Empty<IDataProvider>());
+        var table = Table("Users", column);
+        Assert.AreEqual("mapped", masker.Mask(Row("original"), table)["Email"]);
+        Assert.AreEqual("mapped", masker.Mask(Row("original"), table)["Email"]);
+    }
+
+    [TestMethod]
+    public void InMemoryMapping_UnnamedTablePreservesMappingIdentity()
+    {
+        var column = Column(global: false); column.UseLocalValueMappings = true;
+        var table = new TableConfig { Columns = new List<ColumnConfig> { column } };
+        var masker = new DataMasker(new[] { new SequenceProvider("mapped") });
+        Assert.AreEqual("mapped", masker.Mask(Row("original"), table)["Email"]);
+        Assert.AreEqual("mapped", masker.Mask(Row("original"), table)["Email"]);
+    }
+
+    [TestMethod]
+    public void SourceComparer_ReplacesDefaultComparerForEarlierSupplementalSeeds()
+    {
+        var masker = new DataMasker(new[] { new SequenceProvider("TAKEN", "free") });
+        var table = Table("Users", Column(global: false));
+        masker.SeedUniqueValues("Users", "Email", new object[] { "taken" });
+        masker.SeedUniqueValues(new CaseInsensitiveSource(), table);
+        Assert.AreEqual("free", masker.Mask(Row("original"), table)["Email"]);
+    }
+
 }
