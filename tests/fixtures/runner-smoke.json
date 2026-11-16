@@ -1,0 +1,13 @@
+{
+  "dataSource": { "type": "InMemoryFake", "dryRun": true },
+  "tables": [
+    {
+      "name": "Users",
+      "primaryKeyColumn": "UserId",
+      "columns": [
+        { "name": "FirstName", "type": "FirstName" },
+        { "name": "Password", "type": "None", "useValue": "MASKED" }
+      ]
+    }
+  ]
+}
