@@ -7,6 +7,38 @@ namespace DataMasker.Tests.Utils
     [TestClass]
     public class UtilsTests
     {
+        [TestMethod]
+        public void ConnectionString_PreservesPasswordContainingDelimiters()
+        {
+            const string password = "a;b=1;\"quoted\"";
+            var config = new DataSourceConfig { Config = Newtonsoft.Json.Linq.JObject.FromObject(new
+            { userName = "sa", password, server = "localhost", name = "test" }) };
+            var parsed = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(config.GetConnectionString());
+            Assert.AreEqual(password, parsed.Password);
+            Assert.AreEqual("test", parsed.InitialCatalog);
+        }
+
+        [TestMethod]
+        public void ParameterNames_RejectAmbiguousNormalization()
+        {
+            var error = Assert.ThrowsExactly<InvalidOperationException>(() => DMUtils.MakeParamNamesSafe(
+                new Dictionary<string, object> { ["First Name"] = 1, ["First-Name"] = 2 }));
+            StringAssert.Contains(error.Message, "same SQL parameter");
+        }
+
+        [TestMethod]
+        public void ParameterNames_HandlePunctuationAndLeadingDigits()
+        {
+            Assert.AreEqual("_1_email_address", DMUtils.MakeParamNameSafe("1.email@address"));
+        }
+
+        [TestMethod]
+        public void ParameterNames_PreserveUnicodeLettersForExistingSqlQueries()
+        {
+            Assert.AreEqual("Émail", DMUtils.MakeParamNameSafe("Émail"));
+            Assert.AreEqual("名前", DMUtils.MakeParamNameSafe("名前"));
+        }
+
         // ── TryParseGender ────────────────────────────────────────────────────
 
         [TestMethod]

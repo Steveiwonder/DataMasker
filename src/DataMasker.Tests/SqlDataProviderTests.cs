@@ -21,6 +21,18 @@ namespace DataMasker.Tests
         }
 
         [TestMethod]
+        public void DryRun_RollsBackQuerySideEffectsButReturnsScalar()
+        {
+            using var connection = CreateLookupDb();
+            var provider = new SqlDataProvider(connection, 20, true);
+            var result = provider.GetValue(new ColumnConfig { Name = "FirstName", Type = DataType.Sql,
+                SqlValue = new SqlValueConfig { Query = "UPDATE Lookup SET MaskedValue='Changed'; SELECT 'MASKED'" } },
+                new Dictionary<string, object>(), null);
+            Assert.AreEqual("MASKED", result);
+            Assert.AreEqual("MaskedSteve", connection.ExecuteScalar<string>("SELECT MaskedValue FROM Lookup WHERE Key='Steve'"));
+        }
+
+        [TestMethod]
         public void CanProvide_Sql_ReturnsTrue()
         {
             using var conn = CreateLookupDb();

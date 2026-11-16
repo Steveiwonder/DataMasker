@@ -189,7 +189,7 @@ namespace DataMasker.Runner
             if (config.DataSource.Type == DataSourceType.SqlServer)
             {
                 sqlProviderConnection = new SqlConnection(config.DataSource.GetConnectionString());
-                dataProviders.Add(new SqlDataProvider(sqlProviderConnection));
+                dataProviders.Add(new SqlDataProvider(sqlProviderConnection, config.DataSource.CommandTimeout, config.DataSource.DryRun));
             }
 
             using (sqlProviderConnection)

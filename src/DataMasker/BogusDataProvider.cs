@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Bogus;
@@ -76,7 +76,7 @@ namespace DataMasker
         columnConfig.ValueMappings = new Dictionary<object, object>();
       }
 
-      if (!string.IsNullOrEmpty(columnConfig.UseValue))
+      if (columnConfig.UseValue != null)
       {
         return ConvertValue(columnConfig.Type, columnConfig.UseValue);
       }

@@ -59,6 +59,40 @@ namespace DataMasker.Tests.DataSources
         };
 
         [TestMethod]
+        public void GetData_CallerChangesYieldedKey_DoesNotChangePagingCursor()
+        {
+            var source = new SqlDataSource(MakeConfig(batchSize: 2), Factory());
+            var ids = new List<int>();
+            foreach (var row in source.GetData(UsersTable()))
+            {
+                ids.Add(Convert.ToInt32(row["UserId"]));
+                row["UserId"] = 1000;
+            }
+            CollectionAssert.AreEqual(Enumerable.Range(1, 7).ToList(), ids);
+        }
+
+        [TestMethod]
+        public void UpdateRow_DryRun_PreservesStoredValue()
+        {
+            var config = MakeConfig();
+            config.DryRun = true;
+            var source = new SqlDataSource(config, Factory());
+            var row = source.GetData(UsersTable()).First();
+            row["FirstName"] = "Changed";
+            source.UpdateRow(row, UsersTable());
+            Assert.AreEqual("Name1", _keeper.ExecuteScalar<string>("SELECT FirstName FROM Users WHERE UserId=1"));
+        }
+
+        [TestMethod]
+        public void GetData_RejectsPrimaryKeyMaskingBeforeReading()
+        {
+            var table = UsersTable();
+            table.Columns.Add(new ColumnConfig { Name = "UserId", Type = DataType.None, UseValue = "10" });
+            var error = Assert.ThrowsExactly<InvalidOperationException>(() => new SqlDataSource(MakeConfig(), Factory()).GetData(table).ToList());
+            StringAssert.Contains(error.Message, "Primary key");
+        }
+
+        [TestMethod]
         public void GetData_PageSmallerThanTable_ReturnsEveryRowOnceInKeyOrder()
         {
             var source = new SqlDataSource(MakeConfig(batchSize: 3), Factory());
