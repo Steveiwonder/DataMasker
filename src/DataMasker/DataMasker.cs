@@ -132,7 +132,14 @@ namespace DataMasker
         {
           string key = TableKey(tableConfig, columnConfig.Name);
           var comparer = comparerSource.GetValueComparer(tableConfig, columnConfig.Name);
-          _uniqueValues.GetOrAdd(key, _ => new HashSet<object>(comparer));
+          lock (_uniqueLock)
+          {
+            // Supplemental seeds may arrive before the source supplies its equality rules.
+            // Once masking starts, keep the comparer used by existing reservations stable.
+            if (!_reservationOwners.ContainsKey(key))
+              _uniqueValues.AddOrUpdate(key, _ => new HashSet<object>(comparer),
+                  (_, existing) => new HashSet<object>(existing, comparer));
+          }
         }
         SeedUniqueValues(tableConfig, columnConfig.Name, dataSource.GetDistinctValues(tableConfig, columnConfig.Name));
       }
@@ -253,7 +260,7 @@ namespace DataMasker
     }
 
     // Length-prefix each component so identifiers containing dots cannot alias another table.
-    private static string Component(string value) => $"{value.Length}:{value}";
+    private static string Component(string value) => value == null ? "-1:" : $"{value.Length}:{value}";
 
     private static string TableKey(TableConfig table, string column) =>
         Component(string.IsNullOrWhiteSpace(table.Schema) ? "dbo" : table.Schema) + Component(table.Name) + Component(column);
@@ -275,10 +282,9 @@ namespace DataMasker
     {
       object original = obj[column.Name];
       bool usesMappings = column.UseGlobalValueMappings || column.UseLocalValueMappings;
-      IDataProvider provider = GetDataProvider(column.Type);
       if (!column.Unique && !usesMappings)
       {
-        lock (_uniqueLock) return provider.GetValue(column, obj, gender);
+        lock (_uniqueLock) return GetDataProvider(column.Type).GetValue(column, obj, gender);
       }
       string key = TableKey(table, column.Name);
       bool mapOriginal = usesMappings && original != null;
@@ -293,7 +299,7 @@ namespace DataMasker
             (column.UseList != null && column.UseList.Length > 0) ||
             (column.RetainNullValues && original == null) ||
             (column.RetainEmptyStringValues && original is string text && string.IsNullOrWhiteSpace(text))))
-          return provider.GetValue(column, obj, gender);
+          return GetDataProvider(column.Type).GetValue(column, obj, gender);
 
         Dictionary<object, object> mappings = mapOriginal
             ? _valueMappings.GetOrAdd(mappingKey, _ => new Dictionary<object, object>()) : null;
@@ -329,6 +335,7 @@ namespace DataMasker
 
         ColumnConfig generation = usesMappings
             ? _unmappedColumnConfigs.GetOrAdd(column, c => c.WithoutValueMappings()) : column;
+        IDataProvider provider = GetDataProvider(column.Type);
         for (int attempt = 0; attempt < MAX_UNIQUE_VALUE_ITERATIONS; attempt++)
         {
           object value = provider.GetValue(generation, obj, gender);
