@@ -1,133 +1,177 @@
 name: Release
 
-# Every push to master produces a new release. The version is <major.minor from the
-# VersionPrefix in Directory.Build.props>.<patch>, where patch is one higher than the
-# latest existing tag with that prefix. Bump VersionPrefix to start a new major or
-# minor line.
-#
-# Add "[skip release]" to a commit message to push to master without releasing.
-#
-# The NuGet push is a separate job so that a NuGet problem does not block the GitHub
-# release. It uses nuget.org trusted publishing: the job's OIDC token is exchanged for a
-# short-lived API key by NuGet/login, so no long-lived secret is stored. The trusted
-# publishing policy on nuget.org must point at this repository and this workflow file.
-# If the push fails, fix the policy and re-run the failed job (gh run rerun <run id> --failed);
-# the package it pushes is the one attached to the release.
-
+# Master pushes publish automatically. Add [skip release] to skip publication.
+# Validation is shared with PR CI. A stable tag is reserved for the commit, so
+# retries reuse the version and any existing release assets. A release remains
+# a draft until NuGet trusted publishing succeeds. Do not rename this workflow
+# without updating the nuget.org trusted publishing policy.
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release
   cancel-in-progress: false
 
 jobs:
-  release:
-    if: "!contains(github.event.head_commit.message, '[skip release]')"
+  validate:
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/validate.yml
+
+  version:
+    needs: validate
+    if: github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, '[skip release]')
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
     outputs:
-      version: ${{ steps.version.outputs.version }}
-
+      version: ${{ steps.reserve.outputs.version }}
+      existing: ${{ steps.reserve.outputs.existing }}
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0 # full history so existing tags are visible
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Reserve or reuse release version
+        id: reserve
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/reserve-release.py
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.x
+  artifacts:
+    needs: version
+    if: needs.version.outputs.existing != 'true'
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          global-json-file: global.json
+          dotnet-version: |
+            10.0.x
+            11.0.x
+          cache: true
+          cache-dependency-path: src/**/packages.lock.json
+      - name: Build package and Windows runners
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          dotnet restore src/DataMasker.sln --locked-mode
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet pack src/DataMasker/DataMasker.csproj -c Release --no-restore -p:Version=$env:RELEASE_VERSION -o artifacts/release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          foreach ($framework in @('net10.0', 'net11.0')) {
+            dotnet publish src/DataMasker.Runner/DataMasker.Runner.csproj -c Release -f $framework -r win-x64 --self-contained true --no-restore -p:Version=$env:RELEASE_VERSION -o "artifacts/$framework"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $zip = "artifacts/release/DataMasker.Runner.$env:RELEASE_VERSION.$framework.win-x64.zip"
+            Compress-Archive "artifacts/$framework/*" $zip
+            Expand-Archive $zip "artifacts/smoke-$framework"
+            & "./artifacts/smoke-$framework/DataMasker.Runner.exe" --help
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            & "./artifacts/smoke-$framework/DataMasker.Runner.exe" -c tests/fixtures/runner-smoke.json --no-output
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          Get-ChildItem artifacts/release -File | Sort-Object Name | ForEach-Object {
+            "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)"
+          } | Set-Content artifacts/release/SHA256SUMS -Encoding utf8NoBOM
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-assets
+          path: artifacts/release/
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 14
 
-    - name: Work out next version
-      id: version
-      shell: bash
-      run: |
-        prefix=$(sed -n 's/.*<VersionPrefix>\([0-9][0-9]*\.[0-9][0-9]*\)\.[0-9][0-9]*<\/VersionPrefix>.*/\1/p' Directory.Build.props)
-        if [ -z "$prefix" ]; then
-          echo "VersionPrefix not found in Directory.Build.props" >&2
-          exit 1
-        fi
+  draft:
+    needs: [version, artifacts]
+    if: always() && needs.version.result == 'success' && (needs.artifacts.result == 'success' || needs.version.outputs.existing == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        if: needs.version.outputs.existing != 'true'
+        with:
+          name: release-assets
+          path: artifacts/
+      - name: Create immutable draft release
+        if: needs.version.outputs.existing != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+        run: gh release create "$RELEASE_VERSION" artifacts/* --verify-tag --draft --title "$RELEASE_VERSION" --generate-notes
 
-        latest=$(git tag --list "${prefix}.[0-9]*" | sort -t. -k3,3n | tail -n1)
-        if [ -z "$latest" ]; then
-          patch=0
-        else
-          patch=$(( ${latest##*.} + 1 ))
-        fi
-
-        version="${prefix}.${patch}"
-        echo "Previous: ${latest:-none}  Next: ${version}"
-        echo "version=${version}" >> "$GITHUB_OUTPUT"
-
-    - name: Restore
-      run: dotnet restore ./src/DataMasker.sln
-
-    - name: Build
-      run: dotnet build ./src/DataMasker.sln -c Release --no-restore -p:Version=${{ steps.version.outputs.version }}
-
-    - name: Test
-      run: dotnet test ./src/DataMasker.Tests/DataMasker.Tests.csproj -c Release --no-build --verbosity normal
-
-    - name: Pack library
-      run: dotnet pack ./src/DataMasker/DataMasker.csproj -c Release --no-build -o ./build/ -p:Version=${{ steps.version.outputs.version }}
-
-    - name: Publish CLI (win-x64)
-      run: dotnet publish ./src/DataMasker.Runner/DataMasker.Runner.csproj -c Release -r win-x64 --self-contained -o ./runner-build/ -p:Version=${{ steps.version.outputs.version }}
-
-    - name: Zip CLI
-      run: cd ./runner-build && zip -r ../DataMasker.Runner.zip .
-
-    - name: Upload NuGet package artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: nupkg
-        path: ./build/DataMasker.${{ steps.version.outputs.version }}.nupkg
-
-    - name: Upload CLI artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: DataMasker.Runner.${{ steps.version.outputs.version }}
-        path: ./DataMasker.Runner.zip
-
-    - name: Create GitHub release
-      uses: ncipollo/release-action@v1
-      with:
-        tag: ${{ steps.version.outputs.version }}
-        name: ${{ steps.version.outputs.version }}
-        commit: ${{ github.sha }}
-        artifacts: "DataMasker.Runner.zip,./build/DataMasker.${{ steps.version.outputs.version }}.nupkg"
-        generateReleaseNotes: true
-        token: ${{ secrets.GITHUB_TOKEN }}
+      # Draft releases require push access. This job reads the immutable draft
+      # assets and passes only the package to the read-only publishing job.
+      - name: Retrieve the reserved package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          gh release download "$RELEASE_VERSION" --pattern "DataMasker.$RELEASE_VERSION.nupkg" --pattern SHA256SUMS --dir package
+          cd package
+          grep -F "  DataMasker.$RELEASE_VERSION.nupkg" SHA256SUMS | sha256sum --check --strict
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: reserved-package
+          path: package/
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 14
 
   nuget:
-    needs: release
+    needs: [version, draft]
+    if: always() && needs.version.result == 'success' && needs.draft.result == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
-      id-token: write # needed to obtain the OIDC token for trusted publishing
       contents: read
-
+      id-token: write
     steps:
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.x
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: 11.0.x
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: reserved-package
+          path: artifacts/
+      - name: Verify the reserved package
+        env:
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          cd artifacts
+          grep -F "  DataMasker.$RELEASE_VERSION.nupkg" SHA256SUMS | sha256sum --check --strict
+      - name: Log in to nuget.org
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
+        with:
+          user: Falcubar
+      - name: Publish the reserved package
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+        run: dotnet nuget push "artifacts/DataMasker.$RELEASE_VERSION.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
 
-    - name: Download NuGet package
-      uses: actions/download-artifact@v4
-      with:
-        name: nupkg
-        path: ./build/
-
-    - name: Log in to nuget.org (trusted publishing)
-      id: nuget-login
-      uses: NuGet/login@v1
-      with:
-        user: Falcubar # nuget.org profile that owns the package and the trusted publishing policy
-
-    - name: Push to NuGet
-      run: dotnet nuget push ./build/DataMasker.${{ needs.release.outputs.version }}.nupkg --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+  publish:
+    needs: [version, nuget]
+    if: always() && needs.version.result == 'success' && needs.nuget.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+        run: gh release edit "$RELEASE_VERSION" --draft=false

@@ -6,6 +6,40 @@ namespace DataMasker.Tests.Models
     public class ConfigTests
     {
         [TestMethod]
+        public void Load_ValidatesLaterTablesBeforeRunnerCanWrite()
+        {
+            string file = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(file, """
+                {"dataSource":{"type":"InMemoryFake"},"tables":[
+                  {"name":"Users","primaryKeyColumn":"UserId","columns":[{"name":"FirstName","type":"FirstName"}]},
+                  {"name":"Other","primaryKeyColumn":"Id","columns":[{"name":"FullName","type":"Computed","sourceColumns":["Missing"]}]}
+                ]}
+                """);
+                var error = Assert.ThrowsExactly<InvalidOperationException>(() => Config.Load(file));
+                StringAssert.Contains(error.Message, "SourceColumns");
+            }
+            finally { File.Delete(file); }
+        }
+
+        [TestMethod]
+        public void Load_NullExternalTables_ReportsConfigurationError()
+        {
+            string file = Path.GetTempFileName();
+            string tables = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(tables, "null");
+                File.WriteAllText(file, Newtonsoft.Json.JsonConvert.SerializeObject(new {
+                    dataSource = new { type = "InMemoryFake" }, tablesConfigPath = tables }));
+                var error = Assert.ThrowsExactly<InvalidOperationException>(() => Config.Load(file));
+                StringAssert.Contains(error.Message, "array");
+            }
+            finally { File.Delete(file); File.Delete(tables); }
+        }
+
+        [TestMethod]
         public void Load_ValidConfigFile_ReturnsConfigObject()
         {
             var config = Config.Load("config1.json");
